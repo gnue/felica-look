@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"strconv"
 )
 
 // コマンドの使い方
@@ -14,6 +15,20 @@ func usage() {
 	fmt.Fprintf(os.Stderr, "Usage of %s:\n", path.Base(cmd))
 	flag.PrintDefaults()
 	os.Exit(0)
+}
+
+func find_module(cardinfo *felica.CardInfo, modules []felica.Module) felica.Module {
+	for syscode, _ := range *cardinfo {
+		code, _ := strconv.ParseUint(syscode, 16, 0)
+
+		for _, m := range modules {
+			if m.SystemCode() == code {
+				return m
+			}
+		}
+	}
+
+	return nil
 }
 
 // カード情報を簡易出力する
@@ -52,13 +67,21 @@ func main() {
 		usage()
 	}
 
+	modules := []felica.Module{
+	}
+
 	for _, v := range flag.Args() {
 		cardinfo := felica.Read(v)
 
 		if *dump {
 			dump_info(cardinfo)
 		} else {
-			show_info(cardinfo)
+			m := find_module(cardinfo, modules)
+			if m != nil {
+				m.ShowInfo(cardinfo)
+			} else {
+				show_info(cardinfo)
+			}
 		}
 
 	}

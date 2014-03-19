@@ -20,6 +20,12 @@ type SystemInfo struct {
 // サービス情報
 type ServiceInfo map[string]([][]byte)
 
+type Module interface {
+	Name() string                // カード名
+	SystemCode() uint64          // システムコード
+	ShowInfo(cardinfo *CardInfo) // カード情報を表示する
+}
+
 // *** CardInfo のメソッド
 // システムコードから SystemInfo を取得する
 func (cardinfo CardInfo) sysinfo(syscode uint64) *SystemInfo {
