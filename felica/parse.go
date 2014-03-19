@@ -45,39 +45,16 @@ func (sysinfo SystemInfo) ServiceCodes() []string {
 	return codes
 }
 
+// 正規表現とアクション
+type re_action struct {
+	_regexpes []*regexp.Regexp
+	regexpes  []string
+	action    func(match []string)
+}
+
 // FeliCaダンプファイルを読込む
 func Read(path string) *CardInfo {
 	cardinfo := CardInfo{}
-
-	// IDmの正規表現
-	re_idm := []*regexp.Regexp{
-		regexp.MustCompile("(?i)IDm = *([0-9A-F]+)"),
-		regexp.MustCompile("(?i)IDm :(( [0-9A-F]+)+)"),
-	}
-
-	// PMmの正規表現
-	re_pmm := []*regexp.Regexp{
-		regexp.MustCompile("(?i)PMm = *([0-9A-F]+)"),
-		regexp.MustCompile("(?i)PMm :(( [0-9A-F]+)+)"),
-	}
-
-	// システムコードの正規表現
-	re_syscode := []*regexp.Regexp{
-		regexp.MustCompile("(?i)^# FELICA SYSTEM_CODE = *([0-9A-F]+)"),
-		regexp.MustCompile("(?i)^# System code: ([0-9A-F]+)"),
-	}
-
-	// サービスコードの正規表現
-	re_svccode := []*regexp.Regexp{
-		regexp.MustCompile("(?i)^# [0-9A-F]+:[0-9A-F]+:([0-9A-F]+) #[0-9A-F]+"),
-		regexp.MustCompile("(?i)# Serivce code = *([0-9A-F]+)"),
-	}
-
-	// データの正規表現
-	re_data := []*regexp.Regexp{
-		regexp.MustCompile("(?i)^ *[0-9A-F]+:[0-9A-F]+:([0-9A-F]+):[0-9A-F]+:([0-9A-F]{32})"),
-		regexp.MustCompile("(?i)^ *([0-9A-F]+):[0-9A-F]+(( [0-9A-F]+){16})"),
-	}
 
 	file, err := os.Open(path)
 	if err != nil {
@@ -92,56 +69,75 @@ func Read(path string) *CardInfo {
 	orphan := &SystemInfo{idm: "", pmm: "", services: make(ServiceInfo)}
 	currsys := orphan
 
-	for scanner.Scan() {
-		line := scanner.Text()
-
+	actions := [](*re_action){
 		// IDm
-		for _, re := range re_idm {
-			match := re.FindStringSubmatch(line)
-			if match != nil {
-				idm := match[1]
-				currsys.idm = strings.Replace(idm, " ", "", -1)
-			}
-		}
+		{
+			regexpes: []string{
+				"(?i)IDm = *([0-9A-F]+)",
+				"(?i)IDm :(( [0-9A-F]+)+)",
+			},
+			action: func(match []string) {
+				currsys.idm = strings.Replace(match[1], " ", "", -1)
+			},
+		},
 
 		// PMm
-		for _, re := range re_pmm {
-			match := re.FindStringSubmatch(line)
-			if match != nil {
-				pmm := match[1]
-				currsys.pmm = strings.Replace(pmm, " ", "", -1)
-			}
-		}
+		{
+			regexpes: []string{
+				"(?i)PMm = *([0-9A-F]+)",
+				"(?i)PMm :(( [0-9A-F]+)+)",
+			},
+			action: func(match []string) {
+				currsys.pmm = strings.Replace(match[1], " ", "", -1)
+			},
+		},
 
 		// システムコード
-		for _, re := range re_syscode {
-			match := re.FindStringSubmatch(line)
-			if match != nil {
+		{
+			regexpes: []string{
+				"(?i)^# FELICA SYSTEM_CODE = *([0-9A-F]+)",
+				"(?i)^# System code: ([0-9A-F]+)",
+			},
+			action: func(match []string) {
 				syscode := match[1]
 				currsys = &SystemInfo{idm: "", pmm: "", services: make(ServiceInfo)}
 				cardinfo[syscode] = currsys
-			}
-		}
+			},
+		},
 
 		// サービスコード
-		for _, re := range re_svccode {
-			match := re.FindStringSubmatch(line)
-			if match != nil {
+		{
+			regexpes: []string{
+				"(?i)^# [0-9A-F]+:[0-9A-F]+:([0-9A-F]+) #[0-9A-F]+",
+				"(?i)# Serivce code = *([0-9A-F]+)",
+			},
+			action: func(match []string) {
 				svccode = match[1]
 				currsys.services[svccode] = [][]byte{}
-			}
-		}
+			},
+		},
 
 		// データ
-		for _, re := range re_data {
-			match := re.FindStringSubmatch(line)
-			if match != nil {
+		{
+			regexpes: []string{
+				"(?i)^ *[0-9A-F]+:[0-9A-F]+:([0-9A-F]+):[0-9A-F]+:([0-9A-F]{32})",
+				"(?i)^ *([0-9A-F]+):[0-9A-F]+(( [0-9A-F]+){16})",
+			},
+			action: func(match []string) {
 				data := match[2]
 				data = strings.Replace(data, " ", "", -1)
 				buf := hex2bin(data)
 				currsys.services[svccode] = append(currsys.services[svccode], buf)
-			}
-		}
+			},
+		},
+	}
+
+	// 正規表現のコンパイル
+	re_action_compile(actions)
+
+	for scanner.Scan() {
+		line := scanner.Text()
+		re_match_action(line, actions, true)
 	}
 
 	if err := scanner.Err(); err != nil {
@@ -170,4 +166,33 @@ func hex2bin(hex string) []byte {
 	}
 
 	return buf
+}
+
+// 正規表現をコンパイルする
+func re_action_compile(actions [](*re_action)) {
+	for _, a := range actions {
+		a._regexpes = make([]*regexp.Regexp, len(a.regexpes))
+
+		for i, s := range a.regexpes {
+			a._regexpes[i] = regexp.MustCompile(s)
+		}
+
+	}
+}
+
+// 正規表現に一致したら対応するアクションを実行する
+func re_match_action(text string, actions [](*re_action), is_break bool) {
+	for _, a := range actions {
+		for _, re := range a._regexpes {
+			match := re.FindStringSubmatch(text)
+			if match != nil {
+				a.action(match)
+
+				if is_break {
+					// 残りは実行しない
+					return
+				}
+			}
+		}
+	}
 }
