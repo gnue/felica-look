@@ -35,6 +35,16 @@ func (sysinfo SystemInfo) Services() ServiceInfo {
 	return sysinfo.services
 }
 
+func (sysinfo SystemInfo) ServiceCodes() []string {
+	codes := make([]string, 0, len(sysinfo.services))
+
+	for svccode, _ := range sysinfo.services {
+		codes = append(codes, svccode)
+	}
+
+	return codes
+}
+
 // FeliCaダンプファイルを読込む
 func Read(path string) *CardInfo {
 	cardinfo := CardInfo{}
