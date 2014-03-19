@@ -19,7 +19,7 @@ func main() {
 				fmt.Println("  SERVICE CODE: ", svccode)
 
 				for _, v := range data {
-					fmt.Println("     ", v)
+					fmt.Printf("      %X\n", v)
 				}
 			}
 		}
