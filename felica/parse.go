@@ -16,6 +16,7 @@ type CardInfo map[string]*SystemInfo
 type SystemInfo struct {
 	idm      string
 	pmm      string
+	svccodes []string
 	services ServiceInfo
 }
 
@@ -36,13 +37,7 @@ func (sysinfo SystemInfo) Services() ServiceInfo {
 }
 
 func (sysinfo SystemInfo) ServiceCodes() []string {
-	codes := make([]string, 0, len(sysinfo.services))
-
-	for svccode, _ := range sysinfo.services {
-		codes = append(codes, svccode)
-	}
-
-	return codes
+	return sysinfo.svccodes
 }
 
 // 正規表現とアクション
@@ -66,7 +61,7 @@ func Read(path string) *CardInfo {
 	scanner := bufio.NewScanner(file)
 
 	var svccode string
-	orphan := &SystemInfo{idm: "", pmm: "", services: make(ServiceInfo)}
+	orphan := empty_sysinfo()
 	currsys := orphan
 
 	actions := [](*re_action){
@@ -100,7 +95,7 @@ func Read(path string) *CardInfo {
 			},
 			action: func(match []string) {
 				syscode := match[1]
-				currsys = &SystemInfo{idm: "", pmm: "", services: make(ServiceInfo)}
+				currsys = empty_sysinfo()
 				cardinfo[syscode] = currsys
 			},
 		},
@@ -113,6 +108,7 @@ func Read(path string) *CardInfo {
 			},
 			action: func(match []string) {
 				svccode = match[1]
+				currsys.svccodes = append(currsys.svccodes, svccode)
 				currsys.services[svccode] = [][]byte{}
 			},
 		},
@@ -152,6 +148,11 @@ func Read(path string) *CardInfo {
 	}
 
 	return &cardinfo
+}
+
+// 空の SystemInfo を作成する
+func empty_sysinfo() *SystemInfo {
+	return &SystemInfo{svccodes: []string{}, services: make(ServiceInfo)}
 }
 
 // 16進文字列をバイナリに変換する
