@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"regexp"
+	"strconv"
 	"strings"
 )
 
@@ -19,7 +20,7 @@ type SystemInfo struct {
 }
 
 // サービス情報
-type ServiceInfo map[string]([]string)
+type ServiceInfo map[string]([][]byte)
 
 // SystemInfoメンバーの getter
 func (sysinfo SystemInfo) IDm() string {
@@ -117,7 +118,7 @@ func Read(path string) *CardInfo {
 			match := re.FindStringSubmatch(line)
 			if match != nil {
 				svccode = match[1]
-				currsys.services[svccode] = []string{}
+				currsys.services[svccode] = [][]byte{}
 			}
 		}
 
@@ -127,7 +128,8 @@ func Read(path string) *CardInfo {
 			if match != nil {
 				data := match[2]
 				data = strings.Replace(data, " ", "", -1)
-				currsys.services[svccode] = append(currsys.services[svccode], data)
+				buf := hex2bin(data)
+				currsys.services[svccode] = append(currsys.services[svccode], buf)
 			}
 		}
 	}
@@ -144,4 +146,18 @@ func Read(path string) *CardInfo {
 	}
 
 	return &cardinfo
+}
+
+// 16進文字列をバイナリに変換する
+func hex2bin(hex string) []byte {
+	buf := make([]byte, len(hex)/2)
+
+	p := 0
+	for i := 0; i < len(hex); i += 2 {
+		b, _ := strconv.ParseUint(hex[i:i+2], 16, 8)
+		buf[p] = byte(b)
+		p += 1
+	}
+
+	return buf
 }
