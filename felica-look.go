@@ -69,6 +69,7 @@ func main() {
 	}
 
 	modules := []felica.Module{
+		&felica.RapiCa{},
 	}
 
 	for _, v := range flag.Args() {
