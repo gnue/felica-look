@@ -132,6 +132,81 @@ int rapica_attr_point2(rapica_attr4_t *attr) {
 	return bytes_to_int(attr->point, sizeof(attr->point));
 }
 
+// *** RapiCa履歴データ
+// 処理日時
+time_t rapica_value_datetime(rapica_value_t *value, time_t last_time) {
+	struct tm last_tm;
+	int date = rapica_date(value);
+	int time = rapica_time(value);
+
+	localtime_r(&last_time, &last_tm);
+	int last_date = (last_tm.tm_mon + 1) * 100 + last_tm.tm_mday;
+	int year = last_tm.tm_year;
+
+	if (date > last_date) {
+		// 年をまたいでいるので前年にする
+		year--;
+	}
+
+	struct tm tm = {
+		.tm_min = time % 100,
+		.tm_hour = time / 100,
+		.tm_mday = date % 100,
+		.tm_mon = date / 100 - 1,
+		.tm_year = year,
+	};
+
+	return mktime(&tm);
+}
+
+// 事業者
+int rapica_value_company(rapica_value_t *value) {
+	return value->company;
+}
+
+// 停留所
+int rapica_value_busstop(rapica_value_t *value) {
+	if (value->company == 0x40) {
+		// いわさきグループ
+		return bytes_to_int(value->as.iwasaki.busstop, sizeof(value->as.iwasaki.busstop));
+	} else {
+		// Rapica加盟局社
+		return bytes_to_int(value->as.rapica.busstop, sizeof(value->as.rapica.busstop));
+	}
+}
+
+// 系統
+int rapica_value_busline(rapica_value_t *value) {
+	if (value->company == 0x40) {
+		// いわさきグループ
+		return bytes_to_int(value->as.iwasaki.busline, sizeof(value->as.iwasaki.busline));
+	} else {
+		// Rapica加盟局社
+		return bytes_to_int(value->as.rapica.busline, sizeof(value->as.rapica.busline));
+	}
+}
+
+// 装置
+int rapica_value_busno(rapica_value_t *value) {
+	if (value->company == 0x40) {
+		// いわさきグループ
+		return bytes_to_int(value->as.iwasaki.busno, sizeof(value->as.iwasaki.busno));
+	} else {
+		// Rapica加盟局社
+		return bytes_to_int(value->as.rapica.busno, sizeof(value->as.rapica.busno));
+	}
+}
+
+// 利用種別
+int rapica_value_kind(rapica_value_t *value) {
+	return value->kind;
+}
+
+// 残額
+int rapica_value_amount(rapica_value_t *value) {
+	return bytes_to_int(value->amount, sizeof(value->amount));
+}
+
 // *** RapiCa積増データ
 // 積増日付
 time_t rapica_charge_date(rapica_charge_t *charge) {
@@ -250,6 +325,28 @@ func (rapica *RapiCa) ShowInfo(cardinfo *CardInfo, extend bool) {
 		a_payment, a_point2)
 
 	// RapiCa利用履歴
+	fmt.Println("[利用履歴]")
+	last_time := C.time_t(a_datetime.Unix())
+	for i, _ := range currsys.svcdata(C.FELICA_SC_RAPICA_VALUE) {
+		history := (*C.rapica_value_t)(currsys.svcdata_ptr(C.FELICA_SC_RAPICA_VALUE, i))
+		h_time := C.rapica_value_datetime(history, last_time)
+		if h_time == 0 {
+			continue
+		}
+
+		h_company := C.rapica_value_company(history)
+		h_busstop := C.rapica_value_busstop(history)
+		h_busline := C.rapica_value_busline(history)
+		h_busno := C.rapica_value_busno(history)
+		h_kind := C.rapica_value_kind(history)
+		h_amount := C.rapica_value_amount(history)
+
+		h_datetime := time.Unix(int64(h_time), 0)
+
+		fmt.Printf("  %s  0x%04X  残額:%5d円\t0x%04X 0x%04X / 0x%06X (%d)\n", h_datetime.Format("01/02 15:04"), h_kind, h_amount,
+			h_company, h_busline, h_busstop, h_busno)
+		last_time = h_time
+	}
 
 	// RapiCa積増情報
 	fmt.Println("[積増情報]")
