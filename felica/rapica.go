@@ -9,6 +9,8 @@ import (
 #include <time.h>
 #include "rapica.h"
 
+#define rapica_is_iwasaki(v)	(v->company & 0xf0) == 0x40
+
 int bytes_to_int(const uint8_t bytes[], size_t len) {
 	int value = 0;
 
@@ -166,7 +168,7 @@ int rapica_value_company(rapica_value_t *value) {
 
 // 停留所
 int rapica_value_busstop(rapica_value_t *value) {
-	if (value->company == 0x40) {
+	if (rapica_is_iwasaki(value)) {
 		// いわさきグループ
 		return bytes_to_int(value->as.iwasaki.busstop, sizeof(value->as.iwasaki.busstop));
 	} else {
@@ -177,7 +179,7 @@ int rapica_value_busstop(rapica_value_t *value) {
 
 // 系統
 int rapica_value_busline(rapica_value_t *value) {
-	if (value->company == 0x40) {
+	if (rapica_is_iwasaki(value)) {
 		// いわさきグループ
 		return bytes_to_int(value->as.iwasaki.busline, sizeof(value->as.iwasaki.busline));
 	} else {
@@ -188,7 +190,7 @@ int rapica_value_busline(rapica_value_t *value) {
 
 // 装置
 int rapica_value_busno(rapica_value_t *value) {
-	if (value->company == 0x40) {
+	if (rapica_is_iwasaki(value)) {
 		// いわさきグループ
 		return bytes_to_int(value->as.iwasaki.busno, sizeof(value->as.iwasaki.busno));
 	} else {
@@ -348,11 +350,53 @@ func (rapica *RapiCa) ShowInfo(cardinfo *CardInfo, extend bool) {
 		last_time = h_time
 	}
 
-	fmt.Println("[利用履歴]")
+	fmt.Println("[利用履歴（元データ）]")
 	for _, value := range h_data {
 		fmt.Printf("  %s  0x%02X  残額:%5d円\t0x%04X 0x%04X / 0x%06X (%d)\n",
 			value.datetime.Format("01/02 15:04"), value.kind, value.amount,
 			value.company, value.busline, value.busstop, value.busno)
+	}
+
+	fmt.Println("[利用履歴]")
+	for i, value := range h_data {
+		var st_value *RapicaValue
+		disp_payment := "---"
+		disp_busstop := fmt.Sprintf("0x%06X", value.busstop)
+
+		if i+1 < len(h_data) {
+			pre_data := h_data[i+1]
+
+			if value.kind == 0x41 {
+				// 降車
+				for _, v := range h_data[i+1:] {
+					if v.kind == 0x30 {
+						// 乗車を見つけた
+						st_value = v
+						break
+					}
+				}
+			}
+
+			h_payment := pre_data.amount - value.amount
+			if h_payment == 0 {
+				// 金額が変更されていなければ表示しない
+				continue
+			}
+
+			if h_payment < 0 {
+				disp_payment = fmt.Sprintf("(+%d円)", -h_payment)
+			} else {
+				disp_payment = fmt.Sprintf("%d円", h_payment)
+			}
+		}
+
+		if st_value != nil {
+			disp_busstop = fmt.Sprintf("0x%06X -> 0x%06X", st_value.busstop, value.busstop)
+		}
+
+		fmt.Printf("  %s  0x%02X  %10s\t残額:%5d円\t0x%04X 0x%04X / %s (%d)\n",
+			value.datetime.Format("2006-01-02 15:04"), value.kind, disp_payment, value.amount,
+			value.company, value.busline, disp_busstop, value.busno)
 	}
 
 	// RapiCa積増情報
