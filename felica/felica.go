@@ -1,5 +1,9 @@
 package felica
 
+import (
+	"fmt"
+)
+
 // カード情報
 type CardInfo map[string]*SystemInfo
 
@@ -14,7 +18,13 @@ type SystemInfo struct {
 // サービス情報
 type ServiceInfo map[string]([][]byte)
 
-// SystemInfoメンバーの getter
+// *** CardInfo のメソッド
+// システムコードから SystemInfo を取得する
+func (cardinfo CardInfo) sysinfo(syscode uint64) *SystemInfo {
+	return cardinfo[fmt.Sprintf("%04X", syscode)]
+}
+
+// *** SystemInfo のメソッド
 func (sysinfo SystemInfo) IDm() string {
 	return sysinfo.idm
 }
@@ -29,4 +39,9 @@ func (sysinfo SystemInfo) Services() ServiceInfo {
 
 func (sysinfo SystemInfo) ServiceCodes() []string {
 	return sysinfo.svccodes
+}
+
+// サービスコードからデータを取得する
+func (sysinfo SystemInfo) svcdata(svccode uint64) [][]byte {
+	return sysinfo.services[fmt.Sprintf("%04X", svccode)]
 }
