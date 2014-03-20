@@ -78,6 +78,7 @@ func main() {
 		} else {
 			m := find_module(cardinfo, modules)
 			if m != nil {
+				fmt.Printf("%s:\n", m.Name())
 				m.ShowInfo(cardinfo)
 			} else {
 				show_info(cardinfo)
