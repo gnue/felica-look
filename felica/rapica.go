@@ -132,6 +132,35 @@ int rapica_attr_point2(rapica_attr4_t *attr) {
 	return bytes_to_int(attr->point, sizeof(attr->point));
 }
 
+// *** RapiCa積増データ
+// 積増日付
+time_t rapica_charge_date(rapica_charge_t *charge) {
+	if (charge->day == 0) return 0;
+
+	struct tm tm = {
+		.tm_mday = charge->day,
+		.tm_mon = charge->month - 1,
+		.tm_year = charge->year + 2000 - 1900,
+	};
+
+	return mktime(&tm);
+}
+
+// 積増金額
+int rapica_charge_charge(rapica_charge_t *charge) {
+	return bytes_to_int(charge->charge, sizeof(charge->charge));
+}
+
+// プレミア
+int rapica_charge_premier(rapica_charge_t *charge) {
+	return bytes_to_int(charge->premier, sizeof(charge->premier));
+}
+
+// 事業者
+int rapica_charge_company(rapica_charge_t *charge) {
+	return bytes_to_int(charge->company, sizeof(charge->company));
+}
+
 */
 import "C"
 
@@ -193,10 +222,6 @@ func (rapica *RapiCa) ShowInfo(cardinfo *CardInfo, extend bool) {
 	attr4 := (*C.rapica_attr4_t)(currsys.svcdata_ptr(C.FELICA_SC_RAPICA_ATTR, 3))
 	a_point2 := C.rapica_attr_point2(attr4)
 
-	// RapiCa利用履歴
-
-	// RapiCa積増情報
-
 	// 表示
 	fmt.Printf(`[発行情報]
   事業者: 0x%04X
@@ -223,4 +248,24 @@ func (rapica *RapiCa) ShowInfo(cardinfo *CardInfo, extend bool) {
 `, a_datetime.Format("2006-01-02 15:04"), a_company, a_ticketno, a_busstop, a_busline, a_busno,
 		a_kind, a_amount, a_premier, a_point, a_no, a_start_busstop, a_end_busstop,
 		a_payment, a_point2)
+
+	// RapiCa利用履歴
+
+	// RapiCa積増情報
+	fmt.Println("[積増情報]")
+	for i, _ := range currsys.svcdata(C.FELICA_SC_RAPICA_CHARGE) {
+		charge := (*C.rapica_charge_t)(currsys.svcdata_ptr(C.FELICA_SC_RAPICA_CHARGE, i))
+		c_time := C.rapica_charge_date(charge)
+		if c_time == 0 {
+			continue
+		}
+
+		c_charge := C.rapica_charge_charge(charge)
+		c_premier := C.rapica_charge_premier(charge)
+		c_company := C.rapica_charge_company(charge)
+
+		c_date := time.Unix(int64(c_time), 0)
+
+		fmt.Printf("  %s 積増金額:%d円 プレミア:%d円  0x%04X\n", c_date.Format("2006-01-02"), c_charge, c_premier, c_company)
+	}
 }
