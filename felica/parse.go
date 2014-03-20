@@ -41,7 +41,7 @@ func Read(path string) *CardInfo {
 				"(?i)IDm :(( [0-9A-F]+)+)",
 			},
 			action: func(match []string) {
-				currsys.idm = strings.Replace(match[1], " ", "", -1)
+				currsys.IDm = strings.Replace(match[1], " ", "", -1)
 			},
 		},
 
@@ -52,7 +52,7 @@ func Read(path string) *CardInfo {
 				"(?i)PMm :(( [0-9A-F]+)+)",
 			},
 			action: func(match []string) {
-				currsys.pmm = strings.Replace(match[1], " ", "", -1)
+				currsys.PMm = strings.Replace(match[1], " ", "", -1)
 			},
 		},
 
@@ -77,8 +77,8 @@ func Read(path string) *CardInfo {
 			},
 			action: func(match []string) {
 				svccode = match[1]
-				currsys.svccodes = append(currsys.svccodes, svccode)
-				currsys.services[svccode] = [][]byte{}
+				currsys.ServiceCodes = append(currsys.ServiceCodes, svccode)
+				currsys.Services[svccode] = [][]byte{}
 			},
 		},
 
@@ -92,7 +92,7 @@ func Read(path string) *CardInfo {
 				data := match[2]
 				data = strings.Replace(data, " ", "", -1)
 				buf := hex2bin(data)
-				currsys.services[svccode] = append(currsys.services[svccode], buf)
+				currsys.Services[svccode] = append(currsys.Services[svccode], buf)
 			},
 		},
 	}
@@ -109,10 +109,10 @@ func Read(path string) *CardInfo {
 		fmt.Fprintln(os.Stderr, "reading standard input:", err)
 	}
 
-	if len(orphan.idm) != 0 || len(orphan.pmm) != 0 {
+	if len(orphan.IDm) != 0 || len(orphan.PMm) != 0 {
 		for _, currsys := range cardinfo {
-			currsys.idm = orphan.idm
-			currsys.pmm = orphan.pmm
+			currsys.IDm = orphan.IDm
+			currsys.PMm = orphan.PMm
 		}
 	}
 
@@ -121,7 +121,7 @@ func Read(path string) *CardInfo {
 
 // 空の SystemInfo を作成する
 func empty_sysinfo() *SystemInfo {
-	return &SystemInfo{svccodes: []string{}, services: make(ServiceInfo)}
+	return &SystemInfo{ServiceCodes: []string{}, Services: make(ServiceInfo)}
 }
 
 // 16進文字列をバイナリに変換する

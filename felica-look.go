@@ -35,9 +35,9 @@ func find_module(cardinfo *felica.CardInfo, modules []felica.Module) felica.Modu
 func show_info(cardinfo *felica.CardInfo) {
 	for syscode, currsys := range *cardinfo {
 		fmt.Println("SYSTEM CODE: ", syscode)
-		fmt.Println("  IDm: ", currsys.IDm())
-		fmt.Println("  PMm: ", currsys.PMm())
-		fmt.Println("  SERVICE CODES: ", currsys.ServiceCodes())
+		fmt.Println("  IDm: ", currsys.IDm)
+		fmt.Println("  PMm: ", currsys.PMm)
+		fmt.Println("  SERVICE CODES: ", currsys.ServiceCodes)
 	}
 }
 
@@ -45,10 +45,10 @@ func show_info(cardinfo *felica.CardInfo) {
 func dump_info(cardinfo *felica.CardInfo) {
 	for syscode, currsys := range *cardinfo {
 		fmt.Println("SYSTEM CODE: ", syscode)
-		fmt.Println("  IDm: ", currsys.IDm())
-		fmt.Println("  PMm: ", currsys.PMm())
+		fmt.Println("  IDm: ", currsys.IDm)
+		fmt.Println("  PMm: ", currsys.PMm)
 
-		for svccode, data := range currsys.Services() {
+		for svccode, data := range currsys.Services {
 			fmt.Println("  SERVICE CODE: ", svccode)
 
 			for _, v := range data {
