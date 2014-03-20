@@ -325,8 +325,9 @@ func (rapica *RapiCa) ShowInfo(cardinfo *CardInfo, extend bool) {
 		a_payment, a_point2)
 
 	// RapiCa利用履歴
-	fmt.Println("[利用履歴]")
 	last_time := C.time_t(a_datetime.Unix())
+	h_data := []*RapicaValue{}
+
 	for i, _ := range currsys.svcdata(C.FELICA_SC_RAPICA_VALUE) {
 		history := (*C.rapica_value_t)(currsys.svcdata_ptr(C.FELICA_SC_RAPICA_VALUE, i))
 		h_time := C.rapica_value_datetime(history, last_time)
@@ -334,18 +335,24 @@ func (rapica *RapiCa) ShowInfo(cardinfo *CardInfo, extend bool) {
 			continue
 		}
 
-		h_company := C.rapica_value_company(history)
-		h_busstop := C.rapica_value_busstop(history)
-		h_busline := C.rapica_value_busline(history)
-		h_busno := C.rapica_value_busno(history)
-		h_kind := C.rapica_value_kind(history)
-		h_amount := C.rapica_value_amount(history)
+		value := RapicaValue{}
+		value.datetime = time.Unix(int64(h_time), 0)
+		value.company = int(C.rapica_value_company(history))
+		value.busstop = int(C.rapica_value_busstop(history))
+		value.busline = int(C.rapica_value_busline(history))
+		value.busno = int(C.rapica_value_busno(history))
+		value.kind = int(C.rapica_value_kind(history))
+		value.amount = int(C.rapica_value_amount(history))
 
-		h_datetime := time.Unix(int64(h_time), 0)
-
-		fmt.Printf("  %s  0x%04X  残額:%5d円\t0x%04X 0x%04X / 0x%06X (%d)\n", h_datetime.Format("01/02 15:04"), h_kind, h_amount,
-			h_company, h_busline, h_busstop, h_busno)
+		h_data = append(h_data, &value)
 		last_time = h_time
+	}
+
+	fmt.Println("[利用履歴]")
+	for _, value := range h_data {
+		fmt.Printf("  %s  0x%02X  残額:%5d円\t0x%04X 0x%04X / 0x%06X (%d)\n",
+			value.datetime.Format("01/02 15:04"), value.kind, value.amount,
+			value.company, value.busline, value.busstop, value.busno)
 	}
 
 	// RapiCa積増情報
@@ -365,4 +372,15 @@ func (rapica *RapiCa) ShowInfo(cardinfo *CardInfo, extend bool) {
 
 		fmt.Printf("  %s 積増金額:%d円 プレミア:%d円  0x%04X\n", c_date.Format("2006-01-02"), c_charge, c_premier, c_company)
 	}
+}
+
+// Rapica利用履歴データ
+type RapicaValue struct {
+	datetime time.Time // 処理日時
+	company  int       // 事業者
+	busstop  int       // 停留所
+	busline  int       // 系統
+	busno    int       // 装置
+	kind     int       // 利用種別
+	amount   int       // 残額
 }
