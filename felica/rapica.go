@@ -1,7 +1,137 @@
 package felica
 
+import (
+	"fmt"
+	"time"
+)
+
 /*
+#include <time.h>
 #include "rapica.h"
+
+int bytes_to_int(const uint8_t bytes[], size_t len) {
+	int value = 0;
+
+	for (size_t i = 0; i < len; i++) {
+		value = (value << 8) + bytes[i];
+	}
+
+	return value;
+}
+
+// *** RapiCa発行情報
+// 事業者
+int rapica_info_company(rapica_info_t *info) {
+	return bytes_to_int(info->company, sizeof(info->company));
+}
+
+// 発行日
+time_t rapica_info_date(rapica_info_t *info) {
+	if (info->day == 0) return 0;
+
+	struct tm tm = {
+		.tm_mday = info->day,
+		.tm_mon = info->month - 1,
+		.tm_year = info->year + 2000 - 1900,
+	};
+
+	return mktime(&tm);
+}
+
+// デポジット
+int rapica_info_deposit(rapica_info_t *info) {
+	return bytes_to_int(info->deposit, sizeof(info->deposit));
+}
+
+// *** RapiCa属性情報(1)
+// 直近処理日時
+time_t rapica_attr_time(rapica_attr1_t *attr) {
+	if (attr->day == 0) return 0;
+
+	struct tm tm = {
+		.tm_min = attr->minutes,
+		.tm_hour = attr->hour,
+		.tm_mday = attr->day,
+		.tm_mon = attr->month - 1,
+		.tm_year = attr->year + 2000 - 1900,
+	};
+
+	return mktime(&tm);
+}
+
+// 事業者
+int rapica_attr_company(rapica_attr1_t *attr) {
+	return bytes_to_int(attr->company, sizeof(attr->company));
+}
+
+// 整理券番号
+int rapica_attr_ticketno(rapica_attr1_t *attr) {
+	return attr->ticketno;
+}
+
+// 停留所
+int rapica_attr_busstop(rapica_attr1_t *attr) {
+	return bytes_to_int(attr->busstop, sizeof(attr->busstop));
+}
+
+// 系統
+int rapica_attr_busline(rapica_attr1_t *attr) {
+	return bytes_to_int(attr->busline, sizeof(attr->busline));
+}
+
+// 装置・車号？
+int rapica_attr_busno(rapica_attr1_t *attr) {
+	return bytes_to_int(attr->busno, sizeof(attr->busno));
+}
+
+// *** RapiCa属性情報(2)
+// 利用種別
+int rapica_attr_kind(rapica_attr2_t *attr) {
+	return bytes_to_int(attr->kind, sizeof(attr->kind));
+}
+
+// 残額
+int rapica_attr_amount(rapica_attr2_t *attr) {
+	return bytes_to_int(attr->amount, sizeof(attr->amount));
+}
+
+// プレミア
+int rapica_attr_premier(rapica_attr2_t *attr) {
+	return bytes_to_int(attr->premier, sizeof(attr->premier));
+}
+
+// ポイント
+int rapica_attr_point(rapica_attr2_t *attr) {
+	return bytes_to_int(attr->point, sizeof(attr->point));
+}
+
+// 取引連番
+int rapica_attr_no(rapica_attr2_t *attr) {
+	return bytes_to_int(attr->no, sizeof(attr->no));
+}
+
+// 乗車停留所(整理券)番号
+int rapica_attr_start_busstop(rapica_attr2_t *attr) {
+	return attr->start_busstop;
+}
+
+// 降車停留所(整理券)番号
+int rapica_attr_end_busstop(rapica_attr2_t *attr) {
+	return attr->end_busstop;
+}
+
+// *** RapiCa属性情報(3)
+// 利用金額
+int rapica_attr_payment(rapica_attr3_t *attr) {
+	return bytes_to_int(attr->payment, sizeof(attr->payment));
+}
+
+// *** RapiCa属性情報(4)
+// ポイント？
+int rapica_attr_point2(rapica_attr4_t *attr) {
+	return bytes_to_int(attr->point, sizeof(attr->point));
+}
+
 */
 import "C"
 
@@ -21,4 +151,76 @@ func (rapica *RapiCa) SystemCode() uint64 {
 
 // カード情報を表示する
 func (rapica *RapiCa) ShowInfo(cardinfo *CardInfo, extend bool) {
+
+	// システムデータの取得
+	currsys := cardinfo.sysinfo(rapica.SystemCode())
+
+	// RapiCa発行情報
+	info := (*C.rapica_info_t)(currsys.svcdata_ptr(C.FELICA_SC_RAPICA_INFO, 0))
+
+	i_company := C.rapica_info_company(info)
+	i_time := C.rapica_info_date(info)
+	i_deposit := C.rapica_info_deposit(info)
+
+	i_date := time.Unix(int64(i_time), 0)
+
+	// RapiCa属性情報(1)
+	attr1 := (*C.rapica_attr1_t)(currsys.svcdata_ptr(C.FELICA_SC_RAPICA_ATTR, 0))
+	a_time := C.rapica_attr_time(attr1)
+	a_company := C.rapica_attr_company(attr1)
+	a_ticketno := C.rapica_attr_ticketno(attr1)
+	a_busstop := C.rapica_attr_busstop(attr1)
+	a_busline := C.rapica_attr_busline(attr1)
+	a_busno := C.rapica_attr_busno(attr1)
+
+	a_datetime := time.Unix(int64(a_time), 0)
+
+	// RapiCa属性情報(2)
+	attr2 := (*C.rapica_attr2_t)(currsys.svcdata_ptr(C.FELICA_SC_RAPICA_ATTR, 1))
+	a_kind := C.rapica_attr_kind(attr2)
+	a_amount := C.rapica_attr_amount(attr2)
+	a_premier := C.rapica_attr_premier(attr2)
+	a_point := C.rapica_attr_point(attr2)
+	a_no := C.rapica_attr_no(attr2)
+	a_start_busstop := C.rapica_attr_start_busstop(attr2)
+	a_end_busstop := C.rapica_attr_end_busstop(attr2)
+
+	// RapiCa属性情報(3)
+	attr3 := (*C.rapica_attr3_t)(currsys.svcdata_ptr(C.FELICA_SC_RAPICA_ATTR, 2))
+	a_payment := C.rapica_attr_payment(attr3)
+
+	// RapiCa属性情報(4)
+	attr4 := (*C.rapica_attr4_t)(currsys.svcdata_ptr(C.FELICA_SC_RAPICA_ATTR, 3))
+	a_point2 := C.rapica_attr_point2(attr4)
+
+	// RapiCa利用履歴
+
+	// RapiCa積増情報
+
+	// 表示
+	fmt.Printf(`[発行情報]
+  事業者: 0x%04X
+  発行日: %s
+  デポジット金額: %d円
+`, i_company, i_date.Format("2006-01-02"), i_deposit)
+
+	fmt.Printf(`[属性情報]
+  直近処理日時:	%s
+  事業者:	0x%04X
+  整理券番号:	%d
+  停留所:	0x%06X
+  系統:		0x%04X
+  装置・車号？:	%d
+  利用種別:	0x%04X
+  残額:		%d円
+  プレミア:	%d円
+  ポイント:	%dpt
+  取引連番:	%d
+  乗車停留所(整理券)番号: %d
+  降車停留所(整理券)番号: %d
+  利用金額:	%d円
+  ポイント？:	%dpt
+`, a_datetime.Format("2006-01-02 15:04"), a_company, a_ticketno, a_busstop, a_busline, a_busno,
+		a_kind, a_amount, a_premier, a_point, a_no, a_start_busstop, a_end_busstop,
+		a_payment, a_point2)
 }
