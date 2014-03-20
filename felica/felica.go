@@ -2,6 +2,8 @@ package felica
 
 import (
 	"fmt"
+	"reflect"
+	"unsafe"
 )
 
 // カード情報
@@ -44,4 +46,12 @@ func (sysinfo SystemInfo) ServiceCodes() []string {
 // サービスコードからデータを取得する
 func (sysinfo SystemInfo) svcdata(svccode uint64) [][]byte {
 	return sysinfo.services[fmt.Sprintf("%04X", svccode)]
+}
+
+// C言語で使うためにデータにアクセスするポインタを取得する
+func (sysinfo *SystemInfo) svcdata_ptr(svccode uint64, index int) unsafe.Pointer {
+	data := sysinfo.svcdata(svccode)
+	raw := (*reflect.SliceHeader)(unsafe.Pointer(&data[index])).Data
+
+	return unsafe.Pointer(raw)
 }
