@@ -208,6 +208,7 @@ func (rapica *RapiCa) ShowInfo(cardinfo *CardInfo, extend bool) {
   デポジット金額: %d円
 `, rapica.info.company_name(), rapica.info.date.Format("2006-01-02"), rapica.info.deposit)
 
+	fmt.Println()
 	fmt.Printf(`[属性情報]
   直近処理日時:	%s
   事業者:	%v
@@ -231,9 +232,12 @@ func (rapica *RapiCa) ShowInfo(cardinfo *CardInfo, extend bool) {
 		attr.amount, attr.premier, attr.point, attr.no, attr.start_busstop, attr.end_busstop,
 		attr.payment, attr.point2)
 
+	fmt.Println()
 	fmt.Println("[利用履歴（元データ）]")
+	fmt.Println("      日時      利用種別     残額         事業者 系列 / 停留所 (装置)")
+	fmt.Println("  -------------------------------------------------------------------------------------")
 	for _, value := range rapica.hist {
-		fmt.Printf("  %s  %v  残額:%5d円\t%v %v / %v (%d)\n",
+		fmt.Printf("   %s    %v  %8d円    %v %v / %v (%d)\n",
 			value.datetime.Format("01/02 15:04"),
 			value.kind_name(),
 			value.amount,
@@ -243,7 +247,10 @@ func (rapica *RapiCa) ShowInfo(cardinfo *CardInfo, extend bool) {
 			value.busno)
 	}
 
+	fmt.Println()
 	fmt.Println("[利用履歴]")
+	fmt.Println("          日時       利用種別      利用料金        残額         事業者 系列 / 停留所 (装置)")
+	fmt.Println("  ----------------------------------------------------------------------------------------------------------------------")
 	for _, value := range rapica.hist {
 		disp_payment := "---"
 		disp_busstop := value.busstop_name()
@@ -265,14 +272,17 @@ func (rapica *RapiCa) ShowInfo(cardinfo *CardInfo, extend bool) {
 			disp_busstop = fmt.Sprintf("%v -> %v", st_value.busstop_name(), disp_busstop)
 		}
 
-		fmt.Printf("  %s  %v %12s\t残額:%5d円\t%v %v / %v (%d)\n",
+		fmt.Printf("   %s    %v %14s\t%5d円    %v %v / %v (%d)\n",
 			value.datetime.Format("2006-01-02 15:04"), value.kind_name(), disp_payment, value.amount,
 			value.company_name(), value.busline_name(), disp_busstop, value.busno)
 	}
 
+	fmt.Println()
 	fmt.Println("[積増情報]")
+	fmt.Println("      日時       チャージ   プレミア    事業者")
+	fmt.Println("  ------------------------------------------------")
 	for _, raw := range rapica.charges {
-		fmt.Printf("  %s 積増金額:%d円 プレミア:%d円  %v\n",
+		fmt.Printf("   %s %8d円 %8d円    %v\n",
 			raw.date.Format("2006-01-02"), raw.charge, raw.premier, raw.company_name())
 	}
 }
