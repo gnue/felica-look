@@ -400,7 +400,8 @@ func (rapica *RapiCa) ShowInfo(cardinfo *CardInfo, extend bool) {
 	}
 
 	// RapiCa積増情報
-	fmt.Println("[積増情報]")
+	c_data := []*RapicaCharge{}
+
 	for i, _ := range currsys.svcdata(C.FELICA_SC_RAPICA_CHARGE) {
 		charge := (*C.rapica_charge_t)(currsys.svcdata_ptr(C.FELICA_SC_RAPICA_CHARGE, i))
 		c_time := C.rapica_charge_date(charge)
@@ -408,13 +409,18 @@ func (rapica *RapiCa) ShowInfo(cardinfo *CardInfo, extend bool) {
 			continue
 		}
 
-		c_charge := C.rapica_charge_charge(charge)
-		c_premier := C.rapica_charge_premier(charge)
-		c_company := C.rapica_charge_company(charge)
+		raw := RapicaCharge{}
+		raw.date = time.Unix(int64(c_time), 0)
+		raw.charge = int(C.rapica_charge_charge(charge))
+		raw.premier = int(C.rapica_charge_premier(charge))
+		raw.company = int(C.rapica_charge_company(charge))
 
-		c_date := time.Unix(int64(c_time), 0)
+		c_data = append(c_data, &raw)
+	}
 
-		fmt.Printf("  %s 積増金額:%d円 プレミア:%d円  0x%04X\n", c_date.Format("2006-01-02"), c_charge, c_premier, c_company)
+	fmt.Println("[積増情報]")
+	for _, raw := range c_data {
+		fmt.Printf("  %s 積増金額:%d円 プレミア:%d円  0x%04X\n", raw.date.Format("2006-01-02"), raw.charge, raw.premier, raw.company)
 	}
 }
 
@@ -427,4 +433,12 @@ type RapicaValue struct {
 	busno    int       // 装置
 	kind     int       // 利用種別
 	amount   int       // 残額
+}
+
+// Rapica積増情報データ
+type RapicaCharge struct {
+	date    time.Time // 積増日付
+	charge  int       // 積増金額
+	premier int       // プレミア
+	company int       // 事業者
 }
