@@ -155,10 +155,10 @@ func (rapica *RapiCa) Read(cardinfo *CardInfo) {
 		if i+1 < len(rapica.hist) {
 			pre_data := rapica.hist[i+1]
 
-			if value.kind == 0x41 {
+			if value.kind == C.RAPICA_KIND_GETOFF {
 				// 降車
 				for j, v := range rapica.hist[i+1:] {
-					if v.kind == 0x30 {
+					if v.kind == C.RAPICA_KIND_GETON {
 						// 乗車を見つけた
 						value.st_value = i + 1 + j
 						v.ed_value = i

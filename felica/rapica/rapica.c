@@ -1,8 +1,6 @@
 #include <time.h>
 #include "rapica.h"
 
-#define rapica_is_iwasaki(v)	(v->company & 0xf0) == 0x40
-
 int bytes_to_int(const uint8_t bytes[], size_t len) {
 	int value = 0;
 

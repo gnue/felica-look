@@ -24,6 +24,14 @@
 #define FELICA_SC_RAPICA_VALUE			0x008F		///< RapiCa利用履歴データ・サービスコード
 #define FELICA_SC_RAPICA_CHARGE			0x00CF		///< RapiCa積増情報データ・サービスコード
 
+#define RAPICA_KIND_CREATE				0x00		///< 作成？
+#define RAPICA_KIND_REGISTER			0x10		///< 登録？
+#define RAPICA_KIND_GETON				0x30		///< 乗車
+#define RAPICA_KIND_CHARGE				0x40		///< 積増
+#define RAPICA_KIND_GETOFF				0x41		///< 降車
+
+
+#define rapica_is_iwasaki(v)			((v->company & 0xf0) == 0x40) ///< いわさきグループか？
 
 // generated bitfeilds2macro.rb (rapica)
 
