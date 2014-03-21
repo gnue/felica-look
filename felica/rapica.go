@@ -235,7 +235,7 @@ func (rapica *RapiCa) ShowInfo(cardinfo *CardInfo, extend bool) {
 	if extend {
 		fmt.Println()
 		fmt.Println("[利用履歴（元データ）]")
-		fmt.Println("      日時      利用種別     残額         事業者 系列 / 停留所 (装置)")
+		fmt.Println("      日時      利用種別     残額         事業者 系統 / 停留所 (装置)")
 		fmt.Println("  -------------------------------------------------------------------------------------")
 		for _, value := range rapica.hist {
 			fmt.Printf("   %s    %v  %8d円    %v %v / %v (%d)\n",
@@ -251,7 +251,7 @@ func (rapica *RapiCa) ShowInfo(cardinfo *CardInfo, extend bool) {
 
 	fmt.Println()
 	fmt.Println("[利用履歴]")
-	fmt.Println("          日時       利用種別      利用料金        残額         事業者 系列 / 停留所 (装置)")
+	fmt.Println("          日時       利用種別      利用料金        残額         事業者 系統 / 停留所 (装置)")
 	fmt.Println("  ----------------------------------------------------------------------------------------------------------------------")
 	for _, value := range rapica.hist {
 		disp_payment := "---"
