@@ -53,6 +53,10 @@ type RapicaValue struct {
 	busno    int       // 装置
 	kind     int       // 利用種別
 	amount   int       // 残額
+
+	payment  int // 利用料金（積増の場合はマイナス）
+	st_value int // 対応する乗車データ
+	ed_value int // 対応する降車データ
 }
 
 // Rapica積増情報データ
@@ -138,9 +142,32 @@ func (rapica *RapiCa) Read(cardinfo *CardInfo) {
 		value.busno = int(C.rapica_value_busno(history))
 		value.kind = int(C.rapica_value_kind(history))
 		value.amount = int(C.rapica_value_amount(history))
+		value.st_value = -1
+		value.ed_value = -1
 
 		rapica.hist = append(rapica.hist, &value)
 		last_time = h_time
+	}
+
+	// 乗車データと降車データの関連付けをする
+	for i, value := range rapica.hist {
+		if i+1 < len(rapica.hist) {
+			pre_data := rapica.hist[i+1]
+
+			if value.kind == 0x41 {
+				// 降車
+				for j, v := range rapica.hist[i+1:] {
+					if v.kind == 0x30 {
+						// 乗車を見つけた
+						value.st_value = i + 1 + j
+						v.ed_value = i
+						break
+					}
+				}
+			}
+
+			value.payment = pre_data.amount - value.amount
+		}
 	}
 
 	// RapiCa積増情報
@@ -203,39 +230,24 @@ func (rapica *RapiCa) ShowInfo(cardinfo *CardInfo, extend bool) {
 	}
 
 	fmt.Println("[利用履歴]")
-	for i, value := range rapica.hist {
-		var st_value *RapicaValue
+	for _, value := range rapica.hist {
 		disp_payment := "---"
 		disp_busstop := fmt.Sprintf("0x%06X", value.busstop)
 
-		if i+1 < len(rapica.hist) {
-			pre_data := rapica.hist[i+1]
-
-			if value.kind == 0x41 {
-				// 降車
-				for _, v := range rapica.hist[i+1:] {
-					if v.kind == 0x30 {
-						// 乗車を見つけた
-						st_value = v
-						break
-					}
-				}
-			}
-
-			h_payment := pre_data.amount - value.amount
-			if h_payment == 0 {
-				// 金額が変更されていなければ表示しない
-				continue
-			}
-
-			if h_payment < 0 {
-				disp_payment = fmt.Sprintf("(+%d円)", -h_payment)
-			} else {
-				disp_payment = fmt.Sprintf("%d円", h_payment)
-			}
+		if 0 <= value.ed_value && value.payment == 0 {
+			// 対応する降車データがあり利用金額が 0 ならば表示しない
+			continue
 		}
 
-		if st_value != nil {
+		if value.payment < 0 {
+			// 積増
+			disp_payment = fmt.Sprintf("(+%d円)", -value.payment)
+		} else if 0 < value.payment {
+			disp_payment = fmt.Sprintf("%d円", value.payment)
+		}
+
+		if 0 <= value.st_value {
+			st_value := rapica.hist[value.st_value]
 			disp_busstop = fmt.Sprintf("0x%06X -> 0x%06X", st_value.busstop, value.busstop)
 		}
 
