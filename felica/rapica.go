@@ -259,8 +259,12 @@ func (rapica *RapiCa) SystemCode() uint64 {
 	return C.FELICA_POLLING_RAPICA
 }
 
-// カード情報を表示する
-func (rapica *RapiCa) ShowInfo(cardinfo *CardInfo, extend bool) {
+// カード情報を読込む
+func (rapica *RapiCa) Read(cardinfo *CardInfo) {
+	if rapica.info.company != 0 {
+		// 読込済みなら何もしない
+		return
+	}
 
 	// システムデータの取得
 	currsys := cardinfo.sysinfo(rapica.SystemCode())
@@ -341,6 +345,12 @@ func (rapica *RapiCa) ShowInfo(cardinfo *CardInfo, extend bool) {
 
 		rapica.charges = append(rapica.charges, &raw)
 	}
+}
+
+// カード情報を表示する
+func (rapica *RapiCa) ShowInfo(cardinfo *CardInfo, extend bool) {
+	// データの読込み
+	rapica.Read(cardinfo)
 
 	// 表示
 	attr := rapica.attr
