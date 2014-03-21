@@ -18,6 +18,51 @@ type RapiCa struct {
 	charges []*RapicaCharge // 積増情報
 }
 
+// RapiCa発行情報データ
+type RapicaInfo struct {
+	date    time.Time // 発行日
+	company int       // 事業者
+	deposit int       // デポジット金額
+}
+
+// RapiCa属性情報データ
+type RapicaAttr struct {
+	datetime      time.Time // 直近処理日時
+	company       int       // 事業者
+	ticketno      int       // 整理券番号
+	busstop       int       // 停留所
+	busline       int       // 系統
+	busno         int       // 装置
+	kind          int       // 利用種別
+	amount        int       // 残額
+	premier       int       // プレミア
+	point         int       // ポイント
+	no            int       // 取引連番
+	start_busstop int       // 乗車停留所(整理券)番号
+	end_busstop   int       // 降車停留所(整理券)番号
+	payment       int       // 利用金額
+	point2        int       // ポイント？
+}
+
+// Rapica利用履歴データ
+type RapicaValue struct {
+	datetime time.Time // 処理日時
+	company  int       // 事業者
+	busstop  int       // 停留所
+	busline  int       // 系統
+	busno    int       // 装置
+	kind     int       // 利用種別
+	amount   int       // 残額
+}
+
+// Rapica積増情報データ
+type RapicaCharge struct {
+	date    time.Time // 積増日付
+	charge  int       // 積増金額
+	premier int       // プレミア
+	company int       // 事業者
+}
+
 // カード名
 func (rapica *RapiCa) Name() string {
 	return "RapiCa"
@@ -203,49 +248,4 @@ func (rapica *RapiCa) ShowInfo(cardinfo *CardInfo, extend bool) {
 	for _, raw := range rapica.charges {
 		fmt.Printf("  %s 積増金額:%d円 プレミア:%d円  0x%04X\n", raw.date.Format("2006-01-02"), raw.charge, raw.premier, raw.company)
 	}
-}
-
-// RapiCa発行情報データ
-type RapicaInfo struct {
-	date    time.Time // 発行日
-	company int       // 事業者
-	deposit int       // デポジット金額
-}
-
-// RapiCa属性情報データ
-type RapicaAttr struct {
-	datetime      time.Time // 直近処理日時
-	company       int       // 事業者
-	ticketno      int       // 整理券番号
-	busstop       int       // 停留所
-	busline       int       // 系統
-	busno         int       // 装置
-	kind          int       // 利用種別
-	amount        int       // 残額
-	premier       int       // プレミア
-	point         int       // ポイント
-	no            int       // 取引連番
-	start_busstop int       // 乗車停留所(整理券)番号
-	end_busstop   int       // 降車停留所(整理券)番号
-	payment       int       // 利用金額
-	point2        int       // ポイント？
-}
-
-// Rapica利用履歴データ
-type RapicaValue struct {
-	datetime time.Time // 処理日時
-	company  int       // 事業者
-	busstop  int       // 停留所
-	busline  int       // 系統
-	busno    int       // 装置
-	kind     int       // 利用種別
-	amount   int       // 残額
-}
-
-// Rapica積増情報データ
-type RapicaCharge struct {
-	date    time.Time // 積増日付
-	charge  int       // 積増金額
-	premier int       // プレミア
-	company int       // 事業者
 }
