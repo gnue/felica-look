@@ -67,6 +67,7 @@ type RapicaCharge struct {
 	company int       // 事業者
 }
 
+// *** RapiCa メソッド
 // カード名
 func (rapica *RapiCa) Name() string {
 	return "RapiCa"
@@ -190,6 +191,11 @@ func (rapica *RapiCa) Read(cardinfo *CardInfo) {
 
 // カード情報を表示する
 func (rapica *RapiCa) ShowInfo(cardinfo *CardInfo, extend bool) {
+	// テーブルデータの読込み
+	if rapica_tables == nil {
+		rapica_tables, _ = load_yaml("rapica.yml")
+	}
+
 	// データの読込み
 	rapica.Read(cardinfo)
 
@@ -197,19 +203,19 @@ func (rapica *RapiCa) ShowInfo(cardinfo *CardInfo, extend bool) {
 	attr := rapica.attr
 
 	fmt.Printf(`[発行情報]
-  事業者: 0x%04X
+  事業者: %v
   発行日: %s
   デポジット金額: %d円
-`, rapica.info.company, rapica.info.date.Format("2006-01-02"), rapica.info.deposit)
+`, rapica.info.company_name(), rapica.info.date.Format("2006-01-02"), rapica.info.deposit)
 
 	fmt.Printf(`[属性情報]
   直近処理日時:	%s
-  事業者:	0x%04X
+  事業者:	%v
   整理券番号:	%d
   停留所:	0x%06X
   系統:		0x%04X
   装置・車号？:	%d
-  利用種別:	0x%04X
+  利用種別:	%v
   残額:		%d円
   プレミア:	%d円
   ポイント:	%dpt
@@ -218,21 +224,29 @@ func (rapica *RapiCa) ShowInfo(cardinfo *CardInfo, extend bool) {
   降車停留所(整理券)番号: %d
   利用金額:	%d円
   ポイント？:	%dpt
-`, attr.datetime.Format("2006-01-02 15:04"), attr.company, attr.ticketno, attr.busstop, attr.busline, attr.busno,
-		attr.kind, attr.amount, attr.premier, attr.point, attr.no, attr.start_busstop, attr.end_busstop,
+`, attr.datetime.Format("2006-01-02 15:04"),
+		attr.company_name(),
+		attr.ticketno, attr.busstop, attr.busline, attr.busno,
+		attr.kind_name(),
+		attr.amount, attr.premier, attr.point, attr.no, attr.start_busstop, attr.end_busstop,
 		attr.payment, attr.point2)
 
 	fmt.Println("[利用履歴（元データ）]")
 	for _, value := range rapica.hist {
-		fmt.Printf("  %s  0x%02X  残額:%5d円\t0x%04X 0x%04X / 0x%06X (%d)\n",
-			value.datetime.Format("01/02 15:04"), value.kind, value.amount,
-			value.company, value.busline, value.busstop, value.busno)
+		fmt.Printf("  %s  %v  残額:%5d円\t%v %v / %v (%d)\n",
+			value.datetime.Format("01/02 15:04"),
+			value.kind_name(),
+			value.amount,
+			value.company_name(),
+			value.busline_name(),
+			value.busstop_name(),
+			value.busno)
 	}
 
 	fmt.Println("[利用履歴]")
 	for _, value := range rapica.hist {
 		disp_payment := "---"
-		disp_busstop := fmt.Sprintf("0x%06X", value.busstop)
+		disp_busstop := value.busstop_name()
 
 		if 0 <= value.ed_value && value.payment == 0 {
 			// 対応する降車データがあり利用金額が 0 ならば表示しない
@@ -248,16 +262,69 @@ func (rapica *RapiCa) ShowInfo(cardinfo *CardInfo, extend bool) {
 
 		if 0 <= value.st_value {
 			st_value := rapica.hist[value.st_value]
-			disp_busstop = fmt.Sprintf("0x%06X -> 0x%06X", st_value.busstop, value.busstop)
+			disp_busstop = fmt.Sprintf("%v -> %v", st_value.busstop_name(), disp_busstop)
 		}
 
-		fmt.Printf("  %s  0x%02X  %10s\t残額:%5d円\t0x%04X 0x%04X / %s (%d)\n",
-			value.datetime.Format("2006-01-02 15:04"), value.kind, disp_payment, value.amount,
-			value.company, value.busline, disp_busstop, value.busno)
+		fmt.Printf("  %s  %v %12s\t残額:%5d円\t%v %v / %v (%d)\n",
+			value.datetime.Format("2006-01-02 15:04"), value.kind_name(), disp_payment, value.amount,
+			value.company_name(), value.busline_name(), disp_busstop, value.busno)
 	}
 
 	fmt.Println("[積増情報]")
 	for _, raw := range rapica.charges {
-		fmt.Printf("  %s 積増金額:%d円 プレミア:%d円  0x%04X\n", raw.date.Format("2006-01-02"), raw.charge, raw.premier, raw.company)
+		fmt.Printf("  %s 積増金額:%d円 プレミア:%d円  %v\n",
+			raw.date.Format("2006-01-02"), raw.charge, raw.premier, raw.company_name())
 	}
+}
+
+// *** RapicaInfo メソッド
+// 事業者名
+func (info *RapicaInfo) company_name() interface{} {
+	return rapica_disp_name("ATTR_COMPANY", info.company, 4)
+}
+
+// *** RapicaAttr メソッド
+// 事業者名
+func (attr *RapicaAttr) company_name() interface{} {
+	return rapica_disp_name("ATTR_COMPANY", attr.company, 4)
+}
+
+// 利用種別
+func (attr *RapicaAttr) kind_name() interface{} {
+	return rapica_disp_name("ATTR_KIND", attr.kind&0xff0000, 6, attr.kind)
+}
+
+// *** RapicaValue メソッド
+// 利用種別
+func (value *RapicaValue) kind_name() interface{} {
+	return rapica_disp_name("HIST_KIND", value.kind, 2)
+}
+
+// 事業者名
+func (value *RapicaValue) company_name() interface{} {
+	return rapica_disp_name("HIST_COMPANY", value.company>>4, 2, value.company)
+}
+
+// 停留所
+func (value *RapicaValue) busstop_name() interface{} {
+	return rapica_disp_name("BUSSTOP", value.busstop, 6)
+}
+
+// 系統名
+func (value *RapicaValue) busline_name() interface{} {
+	return rapica_disp_name("BUSLINE", (value.busstop&0xff0000)+value.busline, 4, value.busline)
+}
+
+// *** RapicaCharge メソッド
+func (charge *RapicaCharge) company_name() interface{} {
+	return rapica_disp_name("ATTR_COMPANY", charge.company, 4)
+}
+
+// ***
+// RapiCaテーブル
+var rapica_tables map[interface{}]interface{}
+
+// RapiCaテーブルを検索して表示用の文字列を返す
+func rapica_disp_name(name string, value int, base int, opt_values ...int) interface{} {
+	return disp_name(rapica_tables, name, value, base, opt_values...)
 }
