@@ -299,6 +299,49 @@ func (rapica *RapiCa) ShowInfo(cardinfo *CardInfo, extend bool) {
 	attr4 := (*C.rapica_attr4_t)(currsys.svcdata_ptr(C.FELICA_SC_RAPICA_ATTR, 3))
 	a_point2 := C.rapica_attr_point2(attr4)
 
+	// RapiCa利用履歴
+	last_time := C.time_t(a_datetime.Unix())
+	h_data := []*RapicaValue{}
+
+	for i, _ := range currsys.svcdata(C.FELICA_SC_RAPICA_VALUE) {
+		history := (*C.rapica_value_t)(currsys.svcdata_ptr(C.FELICA_SC_RAPICA_VALUE, i))
+		h_time := C.rapica_value_datetime(history, last_time)
+		if h_time == 0 {
+			continue
+		}
+
+		value := RapicaValue{}
+		value.datetime = time.Unix(int64(h_time), 0)
+		value.company = int(C.rapica_value_company(history))
+		value.busstop = int(C.rapica_value_busstop(history))
+		value.busline = int(C.rapica_value_busline(history))
+		value.busno = int(C.rapica_value_busno(history))
+		value.kind = int(C.rapica_value_kind(history))
+		value.amount = int(C.rapica_value_amount(history))
+
+		h_data = append(h_data, &value)
+		last_time = h_time
+	}
+
+	// RapiCa積増情報
+	c_data := []*RapicaCharge{}
+
+	for i, _ := range currsys.svcdata(C.FELICA_SC_RAPICA_CHARGE) {
+		charge := (*C.rapica_charge_t)(currsys.svcdata_ptr(C.FELICA_SC_RAPICA_CHARGE, i))
+		c_time := C.rapica_charge_date(charge)
+		if c_time == 0 {
+			continue
+		}
+
+		raw := RapicaCharge{}
+		raw.date = time.Unix(int64(c_time), 0)
+		raw.charge = int(C.rapica_charge_charge(charge))
+		raw.premier = int(C.rapica_charge_premier(charge))
+		raw.company = int(C.rapica_charge_company(charge))
+
+		c_data = append(c_data, &raw)
+	}
+
 	// 表示
 	fmt.Printf(`[発行情報]
   事業者: 0x%04X
@@ -325,30 +368,6 @@ func (rapica *RapiCa) ShowInfo(cardinfo *CardInfo, extend bool) {
 `, a_datetime.Format("2006-01-02 15:04"), a_company, a_ticketno, a_busstop, a_busline, a_busno,
 		a_kind, a_amount, a_premier, a_point, a_no, a_start_busstop, a_end_busstop,
 		a_payment, a_point2)
-
-	// RapiCa利用履歴
-	last_time := C.time_t(a_datetime.Unix())
-	h_data := []*RapicaValue{}
-
-	for i, _ := range currsys.svcdata(C.FELICA_SC_RAPICA_VALUE) {
-		history := (*C.rapica_value_t)(currsys.svcdata_ptr(C.FELICA_SC_RAPICA_VALUE, i))
-		h_time := C.rapica_value_datetime(history, last_time)
-		if h_time == 0 {
-			continue
-		}
-
-		value := RapicaValue{}
-		value.datetime = time.Unix(int64(h_time), 0)
-		value.company = int(C.rapica_value_company(history))
-		value.busstop = int(C.rapica_value_busstop(history))
-		value.busline = int(C.rapica_value_busline(history))
-		value.busno = int(C.rapica_value_busno(history))
-		value.kind = int(C.rapica_value_kind(history))
-		value.amount = int(C.rapica_value_amount(history))
-
-		h_data = append(h_data, &value)
-		last_time = h_time
-	}
 
 	fmt.Println("[利用履歴（元データ）]")
 	for _, value := range h_data {
@@ -397,25 +416,6 @@ func (rapica *RapiCa) ShowInfo(cardinfo *CardInfo, extend bool) {
 		fmt.Printf("  %s  0x%02X  %10s\t残額:%5d円\t0x%04X 0x%04X / %s (%d)\n",
 			value.datetime.Format("2006-01-02 15:04"), value.kind, disp_payment, value.amount,
 			value.company, value.busline, disp_busstop, value.busno)
-	}
-
-	// RapiCa積増情報
-	c_data := []*RapicaCharge{}
-
-	for i, _ := range currsys.svcdata(C.FELICA_SC_RAPICA_CHARGE) {
-		charge := (*C.rapica_charge_t)(currsys.svcdata_ptr(C.FELICA_SC_RAPICA_CHARGE, i))
-		c_time := C.rapica_charge_date(charge)
-		if c_time == 0 {
-			continue
-		}
-
-		raw := RapicaCharge{}
-		raw.date = time.Unix(int64(c_time), 0)
-		raw.charge = int(C.rapica_charge_charge(charge))
-		raw.premier = int(C.rapica_charge_premier(charge))
-		raw.company = int(C.rapica_charge_company(charge))
-
-		c_data = append(c_data, &raw)
 	}
 
 	fmt.Println("[積増情報]")
