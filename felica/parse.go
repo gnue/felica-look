@@ -2,10 +2,10 @@ package felica
 
 import (
 	"bufio"
+	"encoding/hex"
 	"fmt"
 	"os"
 	"regexp"
-	"strconv"
 	"strings"
 )
 
@@ -91,7 +91,7 @@ func Read(path string) *CardInfo {
 			action: func(match []string) {
 				data := match[2]
 				data = strings.Replace(data, " ", "", -1)
-				buf := hex2bin(data)
+				buf, _ := hex.DecodeString(data)
 				currsys.Services[svccode] = append(currsys.Services[svccode], buf)
 			},
 		},
@@ -122,20 +122,6 @@ func Read(path string) *CardInfo {
 // 空の SystemInfo を作成する
 func empty_sysinfo() *SystemInfo {
 	return &SystemInfo{ServiceCodes: []string{}, Services: make(ServiceInfo)}
-}
-
-// 16進文字列をバイナリに変換する
-func hex2bin(hex string) []byte {
-	buf := make([]byte, len(hex)/2)
-
-	p := 0
-	for i := 0; i < len(hex); i += 2 {
-		b, _ := strconv.ParseUint(hex[i:i+2], 16, 8)
-		buf[p] = byte(b)
-		p += 1
-	}
-
-	return buf
 }
 
 // 正規表現をコンパイルする
