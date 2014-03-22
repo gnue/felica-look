@@ -151,24 +151,22 @@ func (rapica *RapiCa) Read(cardinfo *CardInfo) {
 	}
 
 	// 乗車データと降車データの関連付けをする
-	for i, value := range rapica.hist {
-		if i+1 < len(rapica.hist) {
-			pre_data := rapica.hist[i+1]
+	for i, value := range rapica.hist[:len(rapica.hist)-1] {
+		pre_data := rapica.hist[i+1]
 
-			if value.kind == C.RAPICA_KIND_GETOFF {
-				// 降車
-				for j, v := range rapica.hist[i+1:] {
-					if v.kind == C.RAPICA_KIND_GETON {
-						// 乗車を見つけた
-						value.st_value = i + 1 + j
-						v.ed_value = i
-						break
-					}
+		if value.kind == C.RAPICA_KIND_GETOFF {
+			// 降車
+			for j, v := range rapica.hist[i+1:] {
+				if v.kind == C.RAPICA_KIND_GETON {
+					// 乗車を見つけた
+					value.st_value = i + 1 + j
+					v.ed_value = i
+					break
 				}
 			}
-
-			value.payment = pre_data.amount - value.amount
 		}
+
+		value.payment = pre_data.amount - value.amount
 	}
 
 	// RapiCa積増情報
