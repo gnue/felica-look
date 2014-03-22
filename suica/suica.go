@@ -121,34 +121,69 @@ func (suica *Suica) ShowInfo(options *felica.Options) {
 		fmt.Println("   利用年月日        残額    入場駅  出場駅 / リージョン (連番） 端末種  処理")
 		fmt.Println("  -------------------------------------------------------------------------------------")
 		for _, value := range suica.Hist {
-			fmt.Printf("   %s  %8d円    0x%04X  0x%04X /    0x%02X    (%4d)  0x%04X  0x%02X\n",
+			fmt.Printf("   %s  %8d円    0x%04X  0x%04X /    0x%02X    (%4d)  %6v  %v\n",
 				value.Date.Format("2006-01-02"),
 				value.Balance,
 				value.InStation,
 				value.OutStation,
 				value.Region,
 				value.No,
-				value.Type,
-				value.Proc)
+				value.TypeName(),
+				value.ProcName())
 		}
 	}
 
 	fmt.Println()
 	fmt.Println("[利用履歴]")
-	fmt.Println("   利用年月日    支払い       残額    入場駅  出場駅 / リージョン (連番） 端末種  処理")
+	fmt.Println("   利用年月日     支払い       残額     入場駅      出場駅   (連番） 端末種    処理")
 	fmt.Println("  ----------------------------------------------------------------------------------------------------------------------")
 	for _, value := range suica.Hist {
-		fmt.Printf("   %s  %6d円 %8d円    0x%04X  0x%04X /    0x%02X    (%4d)  0x%04X  0x%02X\n",
+		disp_payment := "---　"
+
+		if value.Payment < 0 {
+			// チャージ
+			disp_payment = fmt.Sprintf("(+%d円)", -value.Payment)
+		} else if 0 < value.Payment {
+			disp_payment = fmt.Sprintf("%d円", value.Payment)
+		}
+
+		fmt.Printf("   %s  %8s %8d円  %10v  %10v  (%4d)  %6v  %v\n",
 			value.Date.Format("2006-01-02"),
-			value.Payment,
+			disp_payment,
 			value.Balance,
-			value.InStation,
-			value.OutStation,
-			value.Region,
+			value.InStationName(),
+			value.OutStationName(),
 			value.No,
-			value.Type,
-			value.Proc)
+			value.TypeName(),
+			value.ProcName())
 	}
+}
+
+// *** SuicaValue メソッド
+// 処理
+func (value *SuicaValue) ProcName() interface{} {
+	return suica_disp_name("PROC", value.Proc, 2)
+}
+
+// 入場駅
+func (value *SuicaValue) InStationName() interface{} {
+	if value.InStation == 0 {
+		return ""
+	}
+	return suica_disp_name("STATION", (value.Region<<16)+value.InStation, 6)
+}
+
+// 出場駅
+func (value *SuicaValue) OutStationName() interface{} {
+	if value.OutStation == 0 {
+		return ""
+	}
+	return suica_disp_name("STATION", (value.Region<<16)+value.OutStation, 6)
+}
+
+// 端末種
+func (value *SuicaValue) TypeName() interface{} {
+	return suica_disp_name("TYPE", value.Type, 4)
 }
 
 // ***
