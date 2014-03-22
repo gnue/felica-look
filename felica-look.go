@@ -59,6 +59,7 @@ func dump_info(cardinfo *felica.CardInfo) {
 }
 
 func main() {
+	extend := flag.Bool("e", false, "extend information")
 	dump := flag.Bool("d", false, "dump")
 	help := flag.Bool("h", false, "help")
 	flag.Parse()
@@ -79,7 +80,7 @@ func main() {
 			m := find_module(cardinfo, modules)
 			if m != nil {
 				fmt.Printf("%s:\n", m.Name())
-				m.ShowInfo(cardinfo)
+				m.ShowInfo(cardinfo, *extend)
 			} else {
 				show_info(cardinfo)
 			}
