@@ -5,14 +5,14 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"path"
+	"path/filepath"
 	"strconv"
 )
 
 // コマンドの使い方
 func usage() {
 	cmd := os.Args[0]
-	fmt.Fprintf(os.Stderr, "Usage of %s:\n", path.Base(cmd))
+	fmt.Fprintf(os.Stderr, "Usage of %s:\n", filepath.Base(cmd))
 	flag.PrintDefaults()
 	os.Exit(0)
 }
