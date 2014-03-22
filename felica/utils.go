@@ -4,10 +4,15 @@ import (
 	"fmt"
 	"io/ioutil"
 	"launchpad.net/goyaml"
+	"os"
+	"path/filepath"
 )
 
 // YAML を読込む
-func load_yaml(path string) (map[interface{}]interface{}, error) {
+func load_yaml(fname string) (map[interface{}]interface{}, error) {
+	dir := filepath.Dir(os.Args[0])
+	path := filepath.Join(dir, fname)
+
 	contents, err := ioutil.ReadFile(path)
 	if err != nil {
 		return nil, err
