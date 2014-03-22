@@ -232,19 +232,21 @@ func (rapica *RapiCa) ShowInfo(cardinfo *CardInfo, extend bool) {
 		attr.amount, attr.premier, attr.point, attr.no, attr.start_busstop, attr.end_busstop,
 		attr.payment, attr.point2)
 
-	fmt.Println()
-	fmt.Println("[利用履歴（元データ）]")
-	fmt.Println("      日時      利用種別     残額         事業者 系列 / 停留所 (装置)")
-	fmt.Println("  -------------------------------------------------------------------------------------")
-	for _, value := range rapica.hist {
-		fmt.Printf("   %s    %v  %8d円    %v %v / %v (%d)\n",
-			value.datetime.Format("01/02 15:04"),
-			value.kind_name(),
-			value.amount,
-			value.company_name(),
-			value.busline_name(),
-			value.busstop_name(),
-			value.busno)
+	if extend {
+		fmt.Println()
+		fmt.Println("[利用履歴（元データ）]")
+		fmt.Println("      日時      利用種別     残額         事業者 系列 / 停留所 (装置)")
+		fmt.Println("  -------------------------------------------------------------------------------------")
+		for _, value := range rapica.hist {
+			fmt.Printf("   %s    %v  %8d円    %v %v / %v (%d)\n",
+				value.datetime.Format("01/02 15:04"),
+				value.kind_name(),
+				value.amount,
+				value.company_name(),
+				value.busline_name(),
+				value.busstop_name(),
+				value.busno)
+		}
 	}
 
 	fmt.Println()
