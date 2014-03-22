@@ -21,12 +21,19 @@ type re_action struct {
 func Read(path string) CardInfo {
 	cardinfo := CardInfo{}
 
-	file, err := os.Open(path)
-	if err != nil {
-		// エラー処理をする
-		return nil
+	var file *os.File
+	var err error
+
+	if len(path) == 0 {
+		file = os.Stdin
+	} else {
+		file, err = os.Open(path)
+		if err != nil {
+			// エラー処理をする
+			return nil
+		}
+		defer file.Close()
 	}
-	defer file.Close()
 
 	scanner := bufio.NewScanner(file)
 
