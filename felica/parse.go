@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"regexp"
+	"strconv"
 	"strings"
 )
 
@@ -82,6 +83,20 @@ func Read(path string) CardInfo {
 			},
 		},
 
+		// felica_dump サービスコード
+		{
+			regexpes: []string{
+				"(?i)^# ([0-9A-F]{4}):([0-9A-F]{4}) ",
+			},
+			action: func(match []string) {
+				code, _ := strconv.ParseInt(match[1], 16, 0)
+				attr, _ := strconv.ParseInt(match[2], 16, 0)
+				svccode = fmt.Sprintf("%04X", code<<6+attr)
+				currsys.ServiceCodes = append(currsys.ServiceCodes, svccode)
+				currsys.Services[svccode] = [][]byte{}
+			},
+		},
+
 		// データ
 		{
 			regexpes: []string{
@@ -90,6 +105,19 @@ func Read(path string) CardInfo {
 			},
 			action: func(match []string) {
 				data := match[2]
+				data = strings.Replace(data, " ", "", -1)
+				buf, _ := hex.DecodeString(data)
+				currsys.Services[svccode] = append(currsys.Services[svccode], buf)
+			},
+		},
+
+		// felica_dump データ
+		{
+			regexpes: []string{
+				"(?i)^  [0-9A-F]{4}:[0-9A-F]{4}:([0-9A-F]{32})",
+			},
+			action: func(match []string) {
+				data := match[1]
 				data = strings.Replace(data, " ", "", -1)
 				buf, _ := hex.DecodeString(data)
 				currsys.Services[svccode] = append(currsys.Services[svccode], buf)
