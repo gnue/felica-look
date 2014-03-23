@@ -103,13 +103,13 @@ int rapica_attr_no(rapica_attr2_t *attr) {
 }
 
 // 乗車停留所(整理券)番号
-int rapica_attr_start_busstop(rapica_attr2_t *attr) {
-	return attr->start_busstop;
+int rapica_attr_on_busstop(rapica_attr2_t *attr) {
+	return attr->on_busstop;
 }
 
 // 降車停留所(整理券)番号
-int rapica_attr_end_busstop(rapica_attr2_t *attr) {
-	return attr->end_busstop;
+int rapica_attr_off_busstop(rapica_attr2_t *attr) {
+	return attr->off_busstop;
 }
 
 // *** RapiCa属性情報(3)

@@ -75,8 +75,8 @@ typedef struct {
 	uint8_t		point[2];		///< ポイント
 	uint8_t		unkown[1];		///< 不明
 	uint8_t		no[3];			///< 取引連番
-	uint8_t		start_busstop;	///< 乗車停留所(整理券)番号
-	uint8_t		end_busstop;	///< 降車停留所(整理券)番号
+	uint8_t		on_busstop;		///< 乗車停留所(整理券)番号
+	uint8_t		off_busstop;	///< 降車停留所(整理券)番号
 } rapica_attr2_t;
 
 

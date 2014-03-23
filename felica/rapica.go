@@ -27,21 +27,21 @@ type RapicaInfo struct {
 
 // RapiCa属性情報データ
 type RapicaAttr struct {
-	datetime      time.Time // 直近処理日時
-	company       int       // 事業者
-	ticketno      int       // 整理券番号
-	busstop       int       // 停留所
-	busline       int       // 系統
-	busno         int       // 装置
-	kind          int       // 利用種別
-	amount        int       // 残額
-	premier       int       // プレミア
-	point         int       // ポイント
-	no            int       // 取引連番
-	start_busstop int       // 乗車停留所(整理券)番号
-	end_busstop   int       // 降車停留所(整理券)番号
-	payment       int       // 利用金額
-	point2        int       // ポイント？
+	datetime    time.Time // 直近処理日時
+	company     int       // 事業者
+	ticketno    int       // 整理券番号
+	busstop     int       // 停留所
+	busline     int       // 系統
+	busno       int       // 装置
+	kind        int       // 利用種別
+	amount      int       // 残額
+	premier     int       // プレミア
+	point       int       // ポイント
+	no          int       // 取引連番
+	on_busstop  int       // 乗車停留所(整理券)番号
+	off_busstop int       // 降車停留所(整理券)番号
+	payment     int       // 利用金額
+	point2      int       // ポイント？
 }
 
 // Rapica利用履歴データ
@@ -54,9 +54,9 @@ type RapicaValue struct {
 	kind     int       // 利用種別
 	amount   int       // 残額
 
-	payment  int // 利用料金（積増の場合はマイナス）
-	st_value int // 対応する乗車データ
-	ed_value int // 対応する降車データ
+	payment   int // 利用料金（積増の場合はマイナス）
+	on_value  int // 対応する乗車データ
+	off_value int // 対応する降車データ
 }
 
 // Rapica積増情報データ
@@ -114,8 +114,8 @@ func (rapica *RapiCa) Read(cardinfo *CardInfo) {
 	rapica.attr.premier = int(C.rapica_attr_premier(attr2))
 	rapica.attr.point = int(C.rapica_attr_point(attr2))
 	rapica.attr.no = int(C.rapica_attr_no(attr2))
-	rapica.attr.start_busstop = int(C.rapica_attr_start_busstop(attr2))
-	rapica.attr.end_busstop = int(C.rapica_attr_end_busstop(attr2))
+	rapica.attr.on_busstop = int(C.rapica_attr_on_busstop(attr2))
+	rapica.attr.off_busstop = int(C.rapica_attr_off_busstop(attr2))
 
 	// RapiCa属性情報(3)
 	attr3 := (*C.rapica_attr3_t)(currsys.svcdata_ptr(C.FELICA_SC_RAPICA_ATTR, 2))
@@ -143,8 +143,8 @@ func (rapica *RapiCa) Read(cardinfo *CardInfo) {
 		value.busno = int(C.rapica_value_busno(history))
 		value.kind = int(C.rapica_value_kind(history))
 		value.amount = int(C.rapica_value_amount(history))
-		value.st_value = -1
-		value.ed_value = -1
+		value.on_value = -1
+		value.off_value = -1
 
 		rapica.hist = append(rapica.hist, &value)
 		last_time = h_time
@@ -159,8 +159,8 @@ func (rapica *RapiCa) Read(cardinfo *CardInfo) {
 			for j, v := range rapica.hist[i+1:] {
 				if v.kind == C.RAPICA_KIND_GETON {
 					// 乗車を見つけた
-					value.st_value = i + 1 + j
-					v.ed_value = i
+					value.on_value = i + 1 + j
+					v.off_value = i
 					break
 				}
 			}
@@ -227,7 +227,7 @@ func (rapica *RapiCa) ShowInfo(cardinfo *CardInfo, extend bool) {
 		attr.company_name(),
 		attr.ticketno, attr.busstop, attr.busline, attr.busno,
 		attr.kind_name(),
-		attr.amount, attr.premier, attr.point, attr.no, attr.start_busstop, attr.end_busstop,
+		attr.amount, attr.premier, attr.point, attr.no, attr.on_busstop, attr.off_busstop,
 		attr.payment, attr.point2)
 
 	if extend {
@@ -255,7 +255,7 @@ func (rapica *RapiCa) ShowInfo(cardinfo *CardInfo, extend bool) {
 		disp_payment := "---"
 		disp_busstop := value.busstop_name()
 
-		if 0 <= value.ed_value && value.payment == 0 {
+		if 0 <= value.off_value && value.payment == 0 {
 			// 対応する降車データがあり利用金額が 0 ならば表示しない
 			continue
 		}
@@ -267,9 +267,9 @@ func (rapica *RapiCa) ShowInfo(cardinfo *CardInfo, extend bool) {
 			disp_payment = fmt.Sprintf("%d円", value.payment)
 		}
 
-		if 0 <= value.st_value {
-			st_value := rapica.hist[value.st_value]
-			disp_busstop = fmt.Sprintf("%v -> %v", st_value.busstop_name(), disp_busstop)
+		if 0 <= value.on_value {
+			on_value := rapica.hist[value.on_value]
+			disp_busstop = fmt.Sprintf("%v -> %v", on_value.busstop_name(), disp_busstop)
 		}
 
 		fmt.Printf("   %s    %v %14s\t%5d円    %v %v / %v (%d)\n",
