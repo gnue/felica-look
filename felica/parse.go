@@ -17,7 +17,7 @@ type re_action struct {
 }
 
 // FeliCaダンプファイルを読込む
-func Read(path string) *CardInfo {
+func Read(path string) CardInfo {
 	cardinfo := CardInfo{}
 
 	file, err := os.Open(path)
@@ -116,7 +116,7 @@ func Read(path string) *CardInfo {
 		}
 	}
 
-	return &cardinfo
+	return cardinfo
 }
 
 // 空の SystemInfo を作成する

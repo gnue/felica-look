@@ -79,7 +79,7 @@ func (rapica *RapiCa) SystemCode() uint64 {
 }
 
 // カード情報を読込む
-func (rapica *RapiCa) Read(cardinfo *CardInfo) {
+func (rapica *RapiCa) Read(cardinfo CardInfo) {
 	if rapica.Info.Company != 0 {
 		// 読込済みなら何もしない
 		return
@@ -188,7 +188,7 @@ func (rapica *RapiCa) Read(cardinfo *CardInfo) {
 }
 
 // カード情報を表示する
-func (rapica *RapiCa) ShowInfo(cardinfo *CardInfo, extend bool) {
+func (rapica *RapiCa) ShowInfo(cardinfo CardInfo, extend bool) {
 	// テーブルデータの読込み
 	if rapica_tables == nil {
 		rapica_tables, _ = load_yaml("rapica.yml")

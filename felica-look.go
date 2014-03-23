@@ -17,8 +17,8 @@ func usage() {
 	os.Exit(0)
 }
 
-func find_module(cardinfo *felica.CardInfo, modules []felica.Module) felica.Module {
-	for syscode, _ := range *cardinfo {
+func find_module(cardinfo felica.CardInfo, modules []felica.Module) felica.Module {
+	for syscode, _ := range cardinfo {
 		code, _ := strconv.ParseUint(syscode, 16, 0)
 
 		for _, m := range modules {
@@ -32,8 +32,8 @@ func find_module(cardinfo *felica.CardInfo, modules []felica.Module) felica.Modu
 }
 
 // カード情報を簡易出力する
-func show_info(cardinfo *felica.CardInfo) {
-	for syscode, currsys := range *cardinfo {
+func show_info(cardinfo felica.CardInfo) {
+	for syscode, currsys := range cardinfo {
 		fmt.Println("SYSTEM CODE: ", syscode)
 		fmt.Println("  IDm: ", currsys.IDm)
 		fmt.Println("  PMm: ", currsys.PMm)
@@ -42,8 +42,8 @@ func show_info(cardinfo *felica.CardInfo) {
 }
 
 // カード情報をダンプ出力する
-func dump_info(cardinfo *felica.CardInfo) {
-	for syscode, currsys := range *cardinfo {
+func dump_info(cardinfo felica.CardInfo) {
+	for syscode, currsys := range cardinfo {
 		fmt.Println("SYSTEM CODE: ", syscode)
 		fmt.Println("  IDm: ", currsys.IDm)
 		fmt.Println("  PMm: ", currsys.PMm)
