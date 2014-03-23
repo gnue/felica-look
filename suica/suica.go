@@ -87,12 +87,12 @@ func (suica *Suica) Read() {
 		value := SuicaValue{}
 		value.Date = time.Unix(int64(h_time), 0)
 		value.Type = int(C.suica_value_type(history))
-		value.Proc = int(C.suica_value_proc(history))
+		value.Proc = int(history.proc)
 		value.InStation = int(C.suica_value_in_station(history))
 		value.OutStation = int(C.suica_value_out_station(history))
 		value.Balance = int(C.suica_value_balance(history))
 		value.No = int(C.suica_value_no(history))
-		value.Region = int(C.suica_value_region(history))
+		value.Region = int(history.region)
 
 		suica.Hist = append(suica.Hist, &value)
 	}

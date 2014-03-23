@@ -19,11 +19,6 @@ int suica_value_type(suica_value_t *value) {
 	return value->type;
 }
 
-// 処理
-int suica_value_proc(suica_value_t *value) {
-	return value->proc;
-}
-
 // 利用年月日
 time_t suica_value_date(suica_value_t *value) {
 	int day = suica_day(value);
@@ -56,9 +51,4 @@ int suica_value_balance(suica_value_t *value) {
 // 連番
 int suica_value_no(suica_value_t *value) {
 	return bytes_to_int(value->no, sizeof(value->no));
-}
-
-// 処理
-int suica_value_region(suica_value_t *value) {
-	return value->region;
 }
