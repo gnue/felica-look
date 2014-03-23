@@ -102,7 +102,7 @@ func (rapica *RapiCa) Read(cardinfo *CardInfo) {
 
 	rapica.attr.datetime = time.Unix(int64(a_time), 0)
 	rapica.attr.company = int(C.rapica_attr_company(attr1))
-	rapica.attr.ticketno = int(C.rapica_attr_ticketno(attr1))
+	rapica.attr.ticketno = int(attr1.ticketno)
 	rapica.attr.busstop = int(C.rapica_attr_busstop(attr1))
 	rapica.attr.busline = int(C.rapica_attr_busline(attr1))
 	rapica.attr.busno = int(C.rapica_attr_busno(attr1))
@@ -114,8 +114,8 @@ func (rapica *RapiCa) Read(cardinfo *CardInfo) {
 	rapica.attr.premier = int(C.rapica_attr_premier(attr2))
 	rapica.attr.point = int(C.rapica_attr_point(attr2))
 	rapica.attr.no = int(C.rapica_attr_no(attr2))
-	rapica.attr.on_busstop = int(C.rapica_attr_on_busstop(attr2))
-	rapica.attr.off_busstop = int(C.rapica_attr_off_busstop(attr2))
+	rapica.attr.on_busstop = int(attr2.on_busstop)
+	rapica.attr.off_busstop = int(attr2.off_busstop)
 
 	// RapiCa属性情報(3)
 	attr3 := (*C.rapica_attr3_t)(currsys.svcdata_ptr(C.FELICA_SC_RAPICA_ATTR, 2))
@@ -137,11 +137,11 @@ func (rapica *RapiCa) Read(cardinfo *CardInfo) {
 
 		value := RapicaValue{}
 		value.datetime = time.Unix(int64(h_time), 0)
-		value.company = int(C.rapica_value_company(history))
+		value.company = int(history.company)
 		value.busstop = int(C.rapica_value_busstop(history))
 		value.busline = int(C.rapica_value_busline(history))
 		value.busno = int(C.rapica_value_busno(history))
-		value.kind = int(C.rapica_value_kind(history))
+		value.kind = int(history.kind)
 		value.amount = int(C.rapica_value_amount(history))
 		value.on_value = -1
 		value.off_value = -1

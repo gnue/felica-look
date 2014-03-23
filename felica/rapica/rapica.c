@@ -56,11 +56,6 @@ int rapica_attr_company(rapica_attr1_t *attr) {
 	return bytes_to_int(attr->company, sizeof(attr->company));
 }
 
-// 整理券番号
-int rapica_attr_ticketno(rapica_attr1_t *attr) {
-	return attr->ticketno;
-}
-
 // 停留所
 int rapica_attr_busstop(rapica_attr1_t *attr) {
 	return bytes_to_int(attr->busstop, sizeof(attr->busstop));
@@ -102,16 +97,6 @@ int rapica_attr_no(rapica_attr2_t *attr) {
 	return bytes_to_int(attr->no, sizeof(attr->no));
 }
 
-// 乗車停留所(整理券)番号
-int rapica_attr_on_busstop(rapica_attr2_t *attr) {
-	return attr->on_busstop;
-}
-
-// 降車停留所(整理券)番号
-int rapica_attr_off_busstop(rapica_attr2_t *attr) {
-	return attr->off_busstop;
-}
-
 // *** RapiCa属性情報(3)
 // 利用金額
 int rapica_attr_payment(rapica_attr3_t *attr) {
@@ -151,11 +136,6 @@ time_t rapica_value_datetime(rapica_value_t *value, time_t last_time) {
 	return mktime(&tm);
 }
 
-// 事業者
-int rapica_value_company(rapica_value_t *value) {
-	return value->company;
-}
-
 // 停留所
 int rapica_value_busstop(rapica_value_t *value) {
 	if (rapica_is_iwasaki(value)) {
@@ -187,11 +167,6 @@ int rapica_value_busno(rapica_value_t *value) {
 		// Rapica加盟局社
 		return bytes_to_int(value->as.rapica.busno, sizeof(value->as.rapica.busno));
 	}
-}
-
-// 利用種別
-int rapica_value_kind(rapica_value_t *value) {
-	return value->kind;
 }
 
 // 残額
