@@ -137,12 +137,12 @@ func (edy *Edy) ShowInfo(options *felica.Options) {
 		fmt.Println("      利用年月日         支払い        残額  (連番)  タイプ")
 		fmt.Println("  -------------------------------------------------------------------------------------")
 		for _, value := range edy.Hist {
-			fmt.Printf("   %s  %8d円  %8d円  (%4d)  0x%04X\n",
+			fmt.Printf("   %s  %8d円  %8d円  (%4d)  %v\n",
 				value.DateTime.Format("2006-01-02 15:04"),
 				value.Use,
 				value.Rest,
 				value.No,
-				value.Type)
+				value.TypeName())
 		}
 	}
 
@@ -151,13 +151,13 @@ func (edy *Edy) ShowInfo(options *felica.Options) {
 	fmt.Println("      利用年月日        チャージ      支払い        残額  (連番)  タイプ")
 	fmt.Println("  ----------------------------------------------------------------------------------------------------------------------")
 	for _, value := range edy.Hist {
-		fmt.Printf("   %s  %10v  %10v  %8d円  (%4d)  0x%04X\n",
+		fmt.Printf("   %s  %10v  %10v  %8d円  (%4d)  %v\n",
 			value.DateTime.Format("2006-01-02 15:04"),
 			disp_money(value.Charge),
 			disp_money(value.Payment),
 			value.Rest,
 			value.No,
-			value.Type)
+			value.TypeName())
 	}
 }
 
@@ -166,6 +166,11 @@ func (edy *Edy) ShowInfo(options *felica.Options) {
 func (info *EdyInfo) EdyNoDisp() string {
 	edyno := info.EdyNo
 	return fmt.Sprintf("%0X-%0X-%0X-%X", edyno[:2], edyno[2:4], edyno[4:6], edyno[6:])
+}
+
+// タイプ
+func (value *EdyValue) TypeName() interface{} {
+	return edy_disp_name("TYPE", value.Type, 2)
 }
 
 // *** 表示用関数
