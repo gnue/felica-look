@@ -25,7 +25,8 @@ func search_file(fname string, dirs []string) (string, error) {
 
 // YAML を読込む
 func LoadYAML(fname string) (map[interface{}]interface{}, error) {
-	bindir := filepath.Dir(os.Args[0])
+	cmd, _ := filepath.EvalSymlinks(os.Args[0])
+	bindir := filepath.Dir(cmd)
 	moddir := filepath.Join(bindir, strings.TrimSuffix(fname, ".yml"))
 
 	dirs := []string{".", bindir, moddir}
