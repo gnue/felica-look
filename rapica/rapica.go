@@ -189,7 +189,7 @@ func (rapica *RapiCa) Read(cardinfo felica.CardInfo) {
 }
 
 // カード情報を表示する
-func (rapica *RapiCa) ShowInfo(cardinfo felica.CardInfo, extend bool) {
+func (rapica *RapiCa) ShowInfo(cardinfo felica.CardInfo, options *felica.Options) {
 	// テーブルデータの読込み
 	if rapica_tables == nil {
 		rapica_tables, _ = felica.LoadYAML("rapica.yml")
@@ -231,7 +231,7 @@ func (rapica *RapiCa) ShowInfo(cardinfo felica.CardInfo, extend bool) {
 		attr.Amount, attr.Premier, attr.Point, attr.No, attr.OnBusstop, attr.OffBusstop,
 		attr.Payment, attr.Point2)
 
-	if extend {
+	if options.Extend {
 		fmt.Println()
 		fmt.Println("[利用履歴（元データ）]")
 		fmt.Println("      日時      利用種別     残額         事業者 系統 / 停留所 (装置)")

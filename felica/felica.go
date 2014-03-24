@@ -17,13 +17,18 @@ type SystemInfo struct {
 	Services     ServiceInfo
 }
 
+// オプションフラグ
+type Options struct {
+	Extend bool // 拡張表示
+}
+
 // サービス情報
 type ServiceInfo map[string]([][]byte)
 
 type Module interface {
-	Name() string                            // カード名
-	SystemCode() uint64                      // システムコード
-	ShowInfo(cardinfo CardInfo, extend bool) // カード情報を表示する
+	Name() string                                 // カード名
+	SystemCode() uint64                           // システムコード
+	ShowInfo(cardinfo CardInfo, options *Options) // カード情報を表示する
 }
 
 // *** CardInfo のメソッド

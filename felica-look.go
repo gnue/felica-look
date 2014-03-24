@@ -73,6 +73,8 @@ func main() {
 		&rapica.RapiCa{},
 	}
 
+	options := felica.Options{Extend: *extend}
+
 	for _, v := range flag.Args() {
 		cardinfo := felica.Read(v)
 
@@ -82,7 +84,7 @@ func main() {
 			m := find_module(cardinfo, modules)
 			if m != nil {
 				fmt.Printf("%s:\n", m.Name())
-				m.ShowInfo(cardinfo, *extend)
+				m.ShowInfo(cardinfo, &options)
 			} else {
 				show_info(cardinfo)
 			}
