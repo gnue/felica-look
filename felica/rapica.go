@@ -191,7 +191,7 @@ func (rapica *RapiCa) Read(cardinfo CardInfo) {
 func (rapica *RapiCa) ShowInfo(cardinfo CardInfo, extend bool) {
 	// テーブルデータの読込み
 	if rapica_tables == nil {
-		rapica_tables, _ = load_yaml("rapica.yml")
+		rapica_tables, _ = LoadYAML("rapica.yml")
 	}
 
 	// データの読込み
@@ -336,5 +336,5 @@ var rapica_tables map[interface{}]interface{}
 
 // RapiCaテーブルを検索して表示用の文字列を返す
 func rapica_disp_name(name string, value int, base int, opt_values ...int) interface{} {
-	return disp_name(rapica_tables, name, value, base, opt_values...)
+	return DispName(rapica_tables, name, value, base, opt_values...)
 }
