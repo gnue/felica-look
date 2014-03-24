@@ -60,6 +60,7 @@ func dump_info(cardinfo felica.CardInfo) {
 
 func main() {
 	extend := flag.Bool("e", false, "extend information")
+	hex := flag.Bool("x", false, "with hex dump")
 	dump := flag.Bool("d", false, "dump")
 	help := flag.Bool("h", false, "help")
 	flag.Parse()
@@ -68,7 +69,7 @@ func main() {
 		usage()
 	}
 
-	options := felica.Options{Extend: *extend}
+	options := felica.Options{Extend: *extend, Hex: *hex}
 	modules := felica_modules()
 
 	show := func(path string) {
