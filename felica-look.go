@@ -2,6 +2,7 @@ package main
 
 import (
 	"./felica"
+	"./rapica"
 	"flag"
 	"fmt"
 	"os"
@@ -69,7 +70,7 @@ func main() {
 	}
 
 	modules := []felica.Module{
-		&felica.RapiCa{},
+		&rapica.RapiCa{},
 	}
 
 	for _, v := range flag.Args() {

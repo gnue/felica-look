@@ -1,12 +1,13 @@
-package felica
+package rapica
 
 import (
+	"../felica"
 	"fmt"
 	"time"
 )
 
 /*
- #include "rapica/rapica.c"
+ #include "rapica_get.h"
 */
 import "C"
 
@@ -79,7 +80,7 @@ func (rapica *RapiCa) SystemCode() uint64 {
 }
 
 // カード情報を読込む
-func (rapica *RapiCa) Read(cardinfo CardInfo) {
+func (rapica *RapiCa) Read(cardinfo felica.CardInfo) {
 	if rapica.Info.Company != 0 {
 		// 読込済みなら何もしない
 		return
@@ -188,10 +189,10 @@ func (rapica *RapiCa) Read(cardinfo CardInfo) {
 }
 
 // カード情報を表示する
-func (rapica *RapiCa) ShowInfo(cardinfo CardInfo, extend bool) {
+func (rapica *RapiCa) ShowInfo(cardinfo felica.CardInfo, extend bool) {
 	// テーブルデータの読込み
 	if rapica_tables == nil {
-		rapica_tables, _ = LoadYAML("rapica.yml")
+		rapica_tables, _ = felica.LoadYAML("rapica.yml")
 	}
 
 	// データの読込み
@@ -336,5 +337,5 @@ var rapica_tables map[interface{}]interface{}
 
 // RapiCaテーブルを検索して表示用の文字列を返す
 func rapica_disp_name(name string, value int, base int, opt_values ...int) interface{} {
-	return DispName(rapica_tables, name, value, base, opt_values...)
+	return felica.DispName(rapica_tables, name, value, base, opt_values...)
 }

@@ -1,7 +1,8 @@
-#include <time.h>
-#include "rapica.h"
+#include "rapica_get.h"
 
-int bytes_to_int(const uint8_t bytes[], size_t len) {
+
+// バイト列を int に変換する
+static int bytes_to_int(const uint8_t bytes[], size_t len) {
 	int value = 0;
 
 	for (size_t i = 0; i < len; i++) {
@@ -10,6 +11,7 @@ int bytes_to_int(const uint8_t bytes[], size_t len) {
 
 	return value;
 }
+
 
 // *** RapiCa発行情報
 // 事業者
