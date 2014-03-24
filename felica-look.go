@@ -2,7 +2,6 @@ package main
 
 import (
 	"./felica"
-	"./rapica"
 	"flag"
 	"fmt"
 	"os"
@@ -69,11 +68,8 @@ func main() {
 		usage()
 	}
 
-	modules := []felica.Module{
-		&rapica.RapiCa{},
-	}
-
 	options := felica.Options{Extend: *extend}
+	modules := felica_modules()
 
 	show := func(path string) {
 		cardinfo := felica.Read(path)
