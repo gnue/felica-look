@@ -86,10 +86,10 @@ func (rapica *RapiCa) Read(cardinfo CardInfo) {
 	}
 
 	// システムデータの取得
-	currsys := cardinfo.sysinfo(rapica.SystemCode())
+	currsys := cardinfo.SysInfo(rapica.SystemCode())
 
 	// RapiCa発行情報
-	info := (*C.rapica_info_t)(currsys.svcdata_ptr(C.FELICA_SC_RAPICA_INFO, 0))
+	info := (*C.rapica_info_t)(currsys.SvcDataPtr(C.FELICA_SC_RAPICA_INFO, 0))
 	i_time := C.rapica_info_date(info)
 
 	rapica.Info.Company = int(C.rapica_info_company(info))
@@ -97,7 +97,7 @@ func (rapica *RapiCa) Read(cardinfo CardInfo) {
 	rapica.Info.Date = time.Unix(int64(i_time), 0)
 
 	// RapiCa属性情報(1)
-	attr1 := (*C.rapica_attr1_t)(currsys.svcdata_ptr(C.FELICA_SC_RAPICA_ATTR, 0))
+	attr1 := (*C.rapica_attr1_t)(currsys.SvcDataPtr(C.FELICA_SC_RAPICA_ATTR, 0))
 	a_time := C.rapica_attr_time(attr1)
 
 	rapica.Attr.DateTime = time.Unix(int64(a_time), 0)
@@ -108,7 +108,7 @@ func (rapica *RapiCa) Read(cardinfo CardInfo) {
 	rapica.Attr.Busno = int(C.rapica_attr_busno(attr1))
 
 	// RapiCa属性情報(2)
-	attr2 := (*C.rapica_attr2_t)(currsys.svcdata_ptr(C.FELICA_SC_RAPICA_ATTR, 1))
+	attr2 := (*C.rapica_attr2_t)(currsys.SvcDataPtr(C.FELICA_SC_RAPICA_ATTR, 1))
 	rapica.Attr.Kind = int(C.rapica_attr_kind(attr2))
 	rapica.Attr.Amount = int(C.rapica_attr_amount(attr2))
 	rapica.Attr.Premier = int(C.rapica_attr_premier(attr2))
@@ -118,18 +118,18 @@ func (rapica *RapiCa) Read(cardinfo CardInfo) {
 	rapica.Attr.OffBusstop = int(attr2.off_busstop)
 
 	// RapiCa属性情報(3)
-	attr3 := (*C.rapica_attr3_t)(currsys.svcdata_ptr(C.FELICA_SC_RAPICA_ATTR, 2))
+	attr3 := (*C.rapica_attr3_t)(currsys.SvcDataPtr(C.FELICA_SC_RAPICA_ATTR, 2))
 	rapica.Attr.Payment = int(C.rapica_attr_payment(attr3))
 
 	// RapiCa属性情報(4)
-	attr4 := (*C.rapica_attr4_t)(currsys.svcdata_ptr(C.FELICA_SC_RAPICA_ATTR, 3))
+	attr4 := (*C.rapica_attr4_t)(currsys.SvcDataPtr(C.FELICA_SC_RAPICA_ATTR, 3))
 	rapica.Attr.Point2 = int(C.rapica_attr_point2(attr4))
 
 	// RapiCa利用履歴
 	last_time := C.time_t(rapica.Attr.DateTime.Unix())
 
-	for i, _ := range currsys.svcdata(C.FELICA_SC_RAPICA_VALUE) {
-		history := (*C.rapica_value_t)(currsys.svcdata_ptr(C.FELICA_SC_RAPICA_VALUE, i))
+	for i, _ := range currsys.SvcData(C.FELICA_SC_RAPICA_VALUE) {
+		history := (*C.rapica_value_t)(currsys.SvcDataPtr(C.FELICA_SC_RAPICA_VALUE, i))
 		h_time := C.rapica_value_datetime(history, last_time)
 		if h_time == 0 {
 			continue
@@ -170,8 +170,8 @@ func (rapica *RapiCa) Read(cardinfo CardInfo) {
 	}
 
 	// RapiCa積増情報
-	for i, _ := range currsys.svcdata(C.FELICA_SC_RAPICA_CHARGE) {
-		charge := (*C.rapica_charge_t)(currsys.svcdata_ptr(C.FELICA_SC_RAPICA_CHARGE, i))
+	for i, _ := range currsys.SvcData(C.FELICA_SC_RAPICA_CHARGE) {
+		charge := (*C.rapica_charge_t)(currsys.SvcDataPtr(C.FELICA_SC_RAPICA_CHARGE, i))
 		c_time := C.rapica_charge_date(charge)
 		if c_time == 0 {
 			continue
