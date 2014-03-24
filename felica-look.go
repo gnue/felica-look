@@ -81,6 +81,9 @@ func main() {
 			if m != nil {
 				fmt.Printf("%s:\n", m.Name())
 				m.ShowInfo(cardinfo, &options)
+
+				// モジュールを初期状態にする
+				modules = felica_modules()
 			} else {
 				show_info(cardinfo)
 			}
