@@ -1,19 +1,13 @@
 package felica
 
-import (
-	"fmt"
-	"reflect"
-	"unsafe"
-)
-
 // カード情報
-type CardInfo map[string]*SystemInfo
+type CardInfo map[uint16]*SystemInfo
 
 // システム情報
 type SystemInfo struct {
 	IDm          string
 	PMm          string
-	ServiceCodes []string
+	ServiceCodes []uint16
 	Services     ServiceInfo
 }
 
@@ -24,29 +18,14 @@ type Options struct {
 }
 
 // サービス情報
-type ServiceInfo map[string]([][]byte)
+type ServiceInfo map[uint16]([][]byte)
 
 type Module interface {
-	Name() string                                 // カード名
-	SystemCode() uint64                           // システムコード
-	ShowInfo(cardinfo CardInfo, options *Options) // カード情報を表示する
+	IsCard(cardinfo CardInfo) bool // 対応カードか？
+	Bind(cardinfo CardInfo) Engine // CardInfo を束縛した Engine を作成する
 }
 
-// *** CardInfo のメソッド
-// システムコードから SystemInfo を取得する
-func (cardinfo CardInfo) SysInfo(syscode uint64) *SystemInfo {
-	return cardinfo[fmt.Sprintf("%04X", syscode)]
-}
-
-// サービスコードからデータを取得する
-func (sysinfo SystemInfo) SvcData(svccode uint64) [][]byte {
-	return sysinfo.Services[fmt.Sprintf("%04X", svccode)]
-}
-
-// C言語で使うためにデータにアクセスするポインタを取得する
-func (sysinfo *SystemInfo) SvcDataPtr(svccode uint64, index int) unsafe.Pointer {
-	data := sysinfo.SvcData(svccode)
-	raw := (*reflect.SliceHeader)(unsafe.Pointer(&data[index])).Data
-
-	return unsafe.Pointer(raw)
+type Engine interface {
+	Name() string              // カード名
+	ShowInfo(options *Options) // カード情報を表示する
 }

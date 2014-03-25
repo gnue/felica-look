@@ -37,7 +37,7 @@ func Read(path string) CardInfo {
 
 	scanner := bufio.NewScanner(file)
 
-	var svccode string
+	var svccode uint16
 	orphan := empty_sysinfo()
 	currsys := orphan
 
@@ -71,9 +71,9 @@ func Read(path string) CardInfo {
 				"(?i)^# System code: ([0-9A-F]+)",
 			},
 			action: func(match []string) {
-				syscode := match[1]
+				syscode, _ := strconv.ParseUint(match[1], 16, 0)
 				currsys = empty_sysinfo()
-				cardinfo[syscode] = currsys
+				cardinfo[uint16(syscode)] = currsys
 			},
 		},
 
@@ -84,7 +84,9 @@ func Read(path string) CardInfo {
 				"(?i)# Serivce code = *([0-9A-F]+)",
 			},
 			action: func(match []string) {
-				svccode = match[1]
+				code, _ := strconv.ParseUint(match[1], 16, 0)
+				svccode = uint16(code)
+
 				currsys.ServiceCodes = append(currsys.ServiceCodes, svccode)
 				currsys.Services[svccode] = [][]byte{}
 			},
@@ -96,9 +98,9 @@ func Read(path string) CardInfo {
 				"(?i)^# ([0-9A-F]{4}):([0-9A-F]{4}) ",
 			},
 			action: func(match []string) {
-				code, _ := strconv.ParseInt(match[1], 16, 0)
-				attr, _ := strconv.ParseInt(match[2], 16, 0)
-				svccode = fmt.Sprintf("%04X", code<<6+attr)
+				code, _ := strconv.ParseUint(match[1], 16, 0)
+				attr, _ := strconv.ParseUint(match[2], 16, 0)
+				svccode = uint16(code<<6 + attr)
 				currsys.ServiceCodes = append(currsys.ServiceCodes, svccode)
 				currsys.Services[svccode] = [][]byte{}
 			},
@@ -156,7 +158,7 @@ func Read(path string) CardInfo {
 
 // 空の SystemInfo を作成する
 func empty_sysinfo() *SystemInfo {
-	return &SystemInfo{ServiceCodes: []string{}, Services: make(ServiceInfo)}
+	return &SystemInfo{ServiceCodes: []uint16{}, Services: make(ServiceInfo)}
 }
 
 // 正規表現をコンパイルする

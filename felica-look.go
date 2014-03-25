@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strconv"
 )
 
 // コマンドの使い方
@@ -17,39 +16,47 @@ func usage() {
 	os.Exit(0)
 }
 
+// カードに対応するモジュールを探す
 func find_module(cardinfo felica.CardInfo, modules []felica.Module) felica.Module {
-	for syscode, _ := range cardinfo {
-		code, _ := strconv.ParseUint(syscode, 16, 0)
-
-		for _, m := range modules {
-			if m.SystemCode() == code {
-				return m
-			}
+	for _, m := range modules {
+		if m.IsCard(cardinfo) {
+			return m
 		}
 	}
 
 	return nil
 }
 
+// コード・リストを文字列のリストにする
+func codes_to_strings(codes []uint16) []string {
+	var list []string
+
+	for _, code := range codes {
+		list = append(list, fmt.Sprintf("%04X", code))
+	}
+
+	return list
+}
+
 // カード情報を簡易出力する
 func show_info(cardinfo felica.CardInfo) {
 	for syscode, currsys := range cardinfo {
-		fmt.Println("SYSTEM CODE: ", syscode)
+		fmt.Printf("SYSTEM CODE: %04X\n", syscode)
 		fmt.Println("  IDm: ", currsys.IDm)
 		fmt.Println("  PMm: ", currsys.PMm)
-		fmt.Println("  SERVICE CODES: ", currsys.ServiceCodes)
+		fmt.Println("  SERVICE CODES: ", codes_to_strings(currsys.ServiceCodes))
 	}
 }
 
 // カード情報をダンプ出力する
 func dump_info(cardinfo felica.CardInfo) {
 	for syscode, currsys := range cardinfo {
-		fmt.Println("SYSTEM CODE: ", syscode)
+		fmt.Printf("SYSTEM CODE: %04X\n", syscode)
 		fmt.Println("  IDm: ", currsys.IDm)
 		fmt.Println("  PMm: ", currsys.PMm)
 
 		for svccode, data := range currsys.Services {
-			fmt.Println("  SERVICE CODE: ", svccode)
+			fmt.Printf("  SERVICE CODE: %04X\n", svccode)
 
 			for _, v := range data {
 				fmt.Printf("      %X\n", v)
@@ -80,11 +87,10 @@ func main() {
 		} else {
 			m := find_module(cardinfo, modules)
 			if m != nil {
-				fmt.Printf("%s:\n", m.Name())
-				m.ShowInfo(cardinfo, &options)
+				engine := m.Bind(cardinfo)
 
-				// モジュールを初期状態にする
-				modules = felica_modules()
+				fmt.Printf("%s:\n", engine.Name())
+				engine.ShowInfo(&options)
 			} else {
 				show_info(cardinfo)
 			}
