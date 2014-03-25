@@ -83,9 +83,15 @@ func (rapica *RapiCa) Name() string {
 	return "RapiCa"
 }
 
-// システムコード
-func (rapica *RapiCa) SystemCode() uint16 {
-	return uint16(C.FELICA_POLLING_RAPICA)
+// 対応カードか？
+func (rapica *RapiCa) IsCard(cardinfo felica.CardInfo) bool {
+	for syscode, _ := range cardinfo {
+		if syscode == uint16(C.FELICA_POLLING_RAPICA) {
+			return true
+		}
+	}
+
+	return false
 }
 
 // カード情報を読込む
@@ -96,7 +102,7 @@ func (rapica *RapiCa) Read(cardinfo felica.CardInfo) {
 	}
 
 	// システムデータの取得
-	currsys := cardinfo[rapica.SystemCode()]
+	currsys := cardinfo[uint16(C.FELICA_POLLING_RAPICA)]
 
 	// RapiCa発行情報
 	raw_info := currsys.Services[uint16(C.FELICA_SC_RAPICA_INFO)]

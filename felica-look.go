@@ -16,12 +16,11 @@ func usage() {
 	os.Exit(0)
 }
 
+// カードに対応するモジュールを探す
 func find_module(cardinfo felica.CardInfo, modules []felica.Module) felica.Module {
-	for syscode, _ := range cardinfo {
-		for _, m := range modules {
-			if m.SystemCode() == syscode {
-				return m
-			}
+	for _, m := range modules {
+		if m.IsCard(cardinfo) {
+			return m
 		}
 	}
 

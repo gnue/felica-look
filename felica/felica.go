@@ -22,6 +22,6 @@ type ServiceInfo map[uint16]([][]byte)
 
 type Module interface {
 	Name() string                                 // カード名
-	SystemCode() uint16                           // システムコード
+	IsCard(cardinfo CardInfo) bool                // 対応カードか？
 	ShowInfo(cardinfo CardInfo, options *Options) // カード情報を表示する
 }
