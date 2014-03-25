@@ -71,9 +71,9 @@ func Read(path string) CardInfo {
 				"(?i)^# System code: ([0-9A-F]+)",
 			},
 			action: func(match []string) {
-				syscode := match[1]
+				syscode, _ := strconv.ParseUint(match[1], 16, 0)
 				currsys = empty_sysinfo()
-				cardinfo[syscode] = currsys
+				cardinfo[uint16(syscode)] = currsys
 			},
 		},
 

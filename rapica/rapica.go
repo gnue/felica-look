@@ -84,8 +84,8 @@ func (rapica *RapiCa) Name() string {
 }
 
 // システムコード
-func (rapica *RapiCa) SystemCode() uint64 {
-	return C.FELICA_POLLING_RAPICA
+func (rapica *RapiCa) SystemCode() uint16 {
+	return uint16(C.FELICA_POLLING_RAPICA)
 }
 
 // カード情報を読込む
@@ -96,7 +96,7 @@ func (rapica *RapiCa) Read(cardinfo felica.CardInfo) {
 	}
 
 	// システムデータの取得
-	currsys := cardinfo.SysInfo(rapica.SystemCode())
+	currsys := cardinfo[rapica.SystemCode()]
 
 	// RapiCa発行情報
 	rapica.Info.Raw = currsys.SvcData(C.FELICA_SC_RAPICA_INFO)

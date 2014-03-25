@@ -7,7 +7,7 @@ import (
 )
 
 // カード情報
-type CardInfo map[string]*SystemInfo
+type CardInfo map[uint16]*SystemInfo
 
 // システム情報
 type SystemInfo struct {
@@ -28,16 +28,11 @@ type ServiceInfo map[string]([][]byte)
 
 type Module interface {
 	Name() string                                 // カード名
-	SystemCode() uint64                           // システムコード
+	SystemCode() uint16                           // システムコード
 	ShowInfo(cardinfo CardInfo, options *Options) // カード情報を表示する
 }
 
 // *** CardInfo のメソッド
-// システムコードから SystemInfo を取得する
-func (cardinfo CardInfo) SysInfo(syscode uint64) *SystemInfo {
-	return cardinfo[fmt.Sprintf("%04X", syscode)]
-}
-
 // サービスコードからデータを取得する
 func (sysinfo SystemInfo) SvcData(svccode uint64) [][]byte {
 	return sysinfo.Services[fmt.Sprintf("%04X", svccode)]

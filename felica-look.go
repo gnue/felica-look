@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strconv"
 )
 
 // コマンドの使い方
@@ -19,10 +18,8 @@ func usage() {
 
 func find_module(cardinfo felica.CardInfo, modules []felica.Module) felica.Module {
 	for syscode, _ := range cardinfo {
-		code, _ := strconv.ParseUint(syscode, 16, 0)
-
 		for _, m := range modules {
-			if m.SystemCode() == code {
+			if m.SystemCode() == syscode {
 				return m
 			}
 		}
@@ -34,7 +31,7 @@ func find_module(cardinfo felica.CardInfo, modules []felica.Module) felica.Modul
 // カード情報を簡易出力する
 func show_info(cardinfo felica.CardInfo) {
 	for syscode, currsys := range cardinfo {
-		fmt.Println("SYSTEM CODE: ", syscode)
+		fmt.Printf("SYSTEM CODE: %04X\n", syscode)
 		fmt.Println("  IDm: ", currsys.IDm)
 		fmt.Println("  PMm: ", currsys.PMm)
 		fmt.Println("  SERVICE CODES: ", currsys.ServiceCodes)
@@ -44,7 +41,7 @@ func show_info(cardinfo felica.CardInfo) {
 // カード情報をダンプ出力する
 func dump_info(cardinfo felica.CardInfo) {
 	for syscode, currsys := range cardinfo {
-		fmt.Println("SYSTEM CODE: ", syscode)
+		fmt.Printf("SYSTEM CODE: %04X\n", syscode)
 		fmt.Println("  IDm: ", currsys.IDm)
 		fmt.Println("  PMm: ", currsys.PMm)
 
