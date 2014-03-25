@@ -7,8 +7,17 @@ import (
 	"launchpad.net/goyaml"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
+	"unsafe"
 )
+
+// C言語で使うためにデータにアクセスするポインタを取得する
+func DataPtr(data *[]byte) unsafe.Pointer {
+	raw := (*reflect.SliceHeader)(unsafe.Pointer(data)).Data
+
+	return unsafe.Pointer(raw)
+}
 
 // ファイルを検索ディレクトリから探す
 func search_file(fname string, dirs []string) (string, error) {

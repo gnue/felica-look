@@ -1,10 +1,5 @@
 package felica
 
-import (
-	"reflect"
-	"unsafe"
-)
-
 // カード情報
 type CardInfo map[uint16]*SystemInfo
 
@@ -29,13 +24,4 @@ type Module interface {
 	Name() string                                 // カード名
 	SystemCode() uint16                           // システムコード
 	ShowInfo(cardinfo CardInfo, options *Options) // カード情報を表示する
-}
-
-// *** CardInfo のメソッド
-// C言語で使うためにデータにアクセスするポインタを取得する
-func (sysinfo *SystemInfo) SvcDataPtr(svccode uint16, index int) unsafe.Pointer {
-	data := sysinfo.Services[svccode]
-	raw := (*reflect.SliceHeader)(unsafe.Pointer(&data[index])).Data
-
-	return unsafe.Pointer(raw)
 }
