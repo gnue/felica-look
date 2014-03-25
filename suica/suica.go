@@ -3,6 +3,7 @@ package suica
 import (
 	"../felica"
 	"fmt"
+	"strings"
 	"time"
 )
 
@@ -34,6 +35,8 @@ type SuicaValue struct {
 	Region     int       // リージョン
 
 	Payment int // 利用料金（積増の場合はマイナス）
+
+	Raw []byte // Rawデータ
 }
 
 const (
@@ -93,6 +96,7 @@ func (suica *Suica) Read() {
 		value.Balance = int(C.suica_value_balance(history))
 		value.No = int(C.suica_value_no(history))
 		value.Region = int(history.region)
+		value.Raw = raw
 
 		suica.Hist = append(suica.Hist, &value)
 	}
@@ -114,13 +118,24 @@ func (suica *Suica) ShowInfo(options *felica.Options) {
 	// データの読込み
 	suica.Read()
 
+	// インデント
+	indent := 0
+	indent_space := ""
+
+	if options.Hex {
+		indent = 38
+		indent_space = strings.Repeat(" ", indent)
+	}
+
 	// 表示
-	if options.Extend {
-		fmt.Println()
-		fmt.Println("[利用履歴（元データ）]")
-		fmt.Println("   利用年月日        残額    入場駅  出場駅 / リージョン (連番） 端末種  処理")
-		fmt.Println("  -------------------------------------------------------------------------------------")
+	if options.Extend || options.Hex {
+		fmt.Println("\n[利用履歴（元データ）]\n")
+		fmt.Printf("%s   利用年月日        残額    入場駅  出場駅 / リージョン (連番） 端末種    処理\n", indent_space)
+		fmt.Printf("  %s\n", strings.Repeat("-", indent+106))
 		for _, value := range suica.Hist {
+			if options.Hex {
+				fmt.Printf("   %16X   ", value.Raw)
+			}
 			fmt.Printf("   %s  %8d円    0x%04X  0x%04X /    0x%02X    (%4d)  %6v  %v\n",
 				value.Date.Format("2006-01-02"),
 				value.Balance,
@@ -133,10 +148,9 @@ func (suica *Suica) ShowInfo(options *felica.Options) {
 		}
 	}
 
-	fmt.Println()
-	fmt.Println("[利用履歴]")
-	fmt.Println("   利用年月日     支払い       残額     入場駅      出場駅   (連番） 端末種    処理")
-	fmt.Println("  ----------------------------------------------------------------------------------------------------------------------")
+	fmt.Println("\n[利用履歴]\n")
+	fmt.Printf("%s   利用年月日     支払い       残額     入場駅      出場駅   (連番） 端末種    処理\n", indent_space)
+	fmt.Printf("  %s\n", strings.Repeat("-", indent+110))
 	for _, value := range suica.Hist {
 		disp_payment := "---　"
 
@@ -147,6 +161,9 @@ func (suica *Suica) ShowInfo(options *felica.Options) {
 			disp_payment = fmt.Sprintf("%d円", value.Payment)
 		}
 
+		if options.Hex {
+			fmt.Printf("   %16X   ", value.Raw)
+		}
 		fmt.Printf("   %s  %8s %8d円  %10v  %10v  (%4d)  %6v  %v\n",
 			value.Date.Format("2006-01-02"),
 			disp_payment,
