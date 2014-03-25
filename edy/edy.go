@@ -66,9 +66,12 @@ const (
 // *** felica_module メソッド
 // 対応カードか？
 func (module *felica_module) IsCard(cardinfo felica.CardInfo) bool {
-	for syscode, _ := range cardinfo {
+	for syscode, currsys := range cardinfo {
 		if syscode == FELICA_POLLING_EDY {
-			return true
+			if currsys.Services[FELICA_SC_EDY_INFO] != nil {
+				return true
+			}
+			break
 		}
 	}
 
