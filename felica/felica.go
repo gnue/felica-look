@@ -21,7 +21,11 @@ type Options struct {
 type ServiceInfo map[uint16]([][]byte)
 
 type Module interface {
-	Name() string                                 // カード名
-	IsCard(cardinfo CardInfo) bool                // 対応カードか？
-	ShowInfo(cardinfo CardInfo, options *Options) // カード情報を表示する
+	IsCard(cardinfo CardInfo) bool // 対応カードか？
+	Bind(cardinfo CardInfo) Engine // CardInfo を束縛した Engine を作成する
+}
+
+type Engine interface {
+	Name() string              // カード名
+	ShowInfo(options *Options) // カード情報を表示する
 }

@@ -12,12 +12,18 @@ import (
 */
 import "C"
 
+type felica_module string
+
+var Module felica_module = "RapiCa"
+
 // RapiCa/鹿児島市交通局
 type RapiCa struct {
 	Info    RapicaInfo      // 発行情報
 	Attr    RapicaAttr      // 属性情報
 	Hist    []*RapicaValue  // 利用履歴
 	Charges []*RapicaCharge // 積増情報
+
+	cardinfo felica.CardInfo // カード情報（生データ）
 }
 
 // RapiCa発行情報データ
@@ -85,14 +91,9 @@ const (
 	FELICA_SC_RAPICA_CHARGE = uint16(C.FELICA_SC_RAPICA_CHARGE) // RapiCa積増情報データ・サービスコード
 )
 
-// *** RapiCa メソッド
-// カード名
-func (rapica *RapiCa) Name() string {
-	return "RapiCa"
-}
-
+// *** felica_module メソッド
 // 対応カードか？
-func (rapica *RapiCa) IsCard(cardinfo felica.CardInfo) bool {
+func (module *felica_module) IsCard(cardinfo felica.CardInfo) bool {
 	for syscode, _ := range cardinfo {
 		if syscode == FELICA_POLLING_RAPICA {
 			return true
@@ -102,12 +103,25 @@ func (rapica *RapiCa) IsCard(cardinfo felica.CardInfo) bool {
 	return false
 }
 
+// CardInfo を束縛した Engine を作成する
+func (module *felica_module) Bind(cardinfo felica.CardInfo) felica.Engine {
+	return &RapiCa{cardinfo: cardinfo}
+}
+
+// *** RapiCa メソッド
+// カード名
+func (rapica *RapiCa) Name() string {
+	return string(Module)
+}
+
 // カード情報を読込む
-func (rapica *RapiCa) Read(cardinfo felica.CardInfo) {
+func (rapica *RapiCa) Read() {
 	if rapica.Info.Company != 0 {
 		// 読込済みなら何もしない
 		return
 	}
+
+	cardinfo := rapica.cardinfo
 
 	// システムデータの取得
 	currsys := cardinfo[FELICA_POLLING_RAPICA]
@@ -221,14 +235,14 @@ func (rapica *RapiCa) Read(cardinfo felica.CardInfo) {
 }
 
 // カード情報を表示する
-func (rapica *RapiCa) ShowInfo(cardinfo felica.CardInfo, options *felica.Options) {
+func (rapica *RapiCa) ShowInfo(options *felica.Options) {
 	// テーブルデータの読込み
 	if rapica_tables == nil {
 		rapica_tables, _ = felica.LoadYAML("rapica.yml")
 	}
 
 	// データの読込み
-	rapica.Read(cardinfo)
+	rapica.Read()
 
 	// インデント
 	indent := 0

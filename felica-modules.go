@@ -7,7 +7,7 @@ import (
 
 func felica_modules() []felica.Module {
 	modules := []felica.Module{
-		&rapica.RapiCa{},
+		&rapica.Module,
 	}
 
 	return modules

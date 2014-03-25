@@ -87,11 +87,10 @@ func main() {
 		} else {
 			m := find_module(cardinfo, modules)
 			if m != nil {
-				fmt.Printf("%s:\n", m.Name())
-				m.ShowInfo(cardinfo, &options)
+				engine := m.Bind(cardinfo)
 
-				// モジュールを初期状態にする
-				modules = felica_modules()
+				fmt.Printf("%s:\n", engine.Name())
+				engine.ShowInfo(&options)
 			} else {
 				show_info(cardinfo)
 			}
