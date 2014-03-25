@@ -20,6 +20,7 @@
 #define FELICA_POLLING_EDY			0xFE00		///< Edyシステムコード
 
 #define FELICA_SC_EDY_INFO			0x110B		///< Edyカード情報・サービスコード
+#define FELICA_SC_EDY_LAST			0x1317		///< Edy残額情報・サービスコード
 #define FELICA_SC_EDY_VALUE			0x170F		///< Edy利用履歴データ・サービスコード
 
 
@@ -35,6 +36,15 @@ typedef struct {
 	uint8_t		edyno[8];		///< Edy番号
 	uint8_t		unknown2[6];	///< 不明
 } edy_info0_t;
+
+
+/// Edy残額情報（最終利用状況）
+typedef struct {
+	uint8_t		rest[4];		///< 残額(LE)
+	uint8_t		use[4];			///< 直近使用金額(LE) チャージのときは更新されない場合がある
+	uint8_t		unknown[6];		///< 不明
+	uint8_t		no[2];			///< 取引通番(LE)
+} edy_last_t;
 
 
 /// Edy履歴データ
