@@ -20,6 +20,7 @@ type SystemInfo struct {
 // オプションフラグ
 type Options struct {
 	Extend bool // 拡張表示
+	Hex    bool // データの16進表示もいっしょに表示する
 }
 
 // サービス情報

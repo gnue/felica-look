@@ -3,6 +3,7 @@ package rapica
 import (
 	"../felica"
 	"fmt"
+	"strings"
 	"time"
 )
 
@@ -24,6 +25,8 @@ type RapicaInfo struct {
 	Date    time.Time // 発行日
 	Company int       // 事業者
 	Deposit int       // デポジット金額
+
+	Raw [][]byte // Rawデータ
 }
 
 // RapiCa属性情報データ
@@ -43,6 +46,8 @@ type RapicaAttr struct {
 	OffBusstop int       // 降車停留所(整理券)番号
 	Payment    int       // 利用金額
 	Point2     int       // ポイント？
+
+	Raw [][]byte // Rawデータ
 }
 
 // Rapica利用履歴データ
@@ -58,6 +63,8 @@ type RapicaValue struct {
 	Payment  int // 利用料金（積増の場合はマイナス）
 	OnValue  int // 対応する乗車データ
 	OffValue int // 対応する降車データ
+
+	Raw []byte // Rawデータ
 }
 
 // Rapica積増情報データ
@@ -66,6 +73,8 @@ type RapicaCharge struct {
 	Charge  int       // 積増金額
 	Premier int       // プレミア
 	Company int       // 事業者
+
+	Raw []byte // Rawデータ
 }
 
 // *** RapiCa メソッド
@@ -90,12 +99,17 @@ func (rapica *RapiCa) Read(cardinfo felica.CardInfo) {
 	currsys := cardinfo.SysInfo(rapica.SystemCode())
 
 	// RapiCa発行情報
+	rapica.Info.Raw = currsys.SvcData(C.FELICA_SC_RAPICA_INFO)
+
 	info := (*C.rapica_info_t)(currsys.SvcDataPtr(C.FELICA_SC_RAPICA_INFO, 0))
 	i_time := C.rapica_info_date(info)
 
 	rapica.Info.Company = int(C.rapica_info_company(info))
 	rapica.Info.Deposit = int(C.rapica_info_deposit(info))
 	rapica.Info.Date = time.Unix(int64(i_time), 0)
+
+	// RapiCa属性情報
+	rapica.Attr.Raw = currsys.SvcData(C.FELICA_SC_RAPICA_ATTR)
 
 	// RapiCa属性情報(1)
 	attr1 := (*C.rapica_attr1_t)(currsys.SvcDataPtr(C.FELICA_SC_RAPICA_ATTR, 0))
@@ -129,7 +143,7 @@ func (rapica *RapiCa) Read(cardinfo felica.CardInfo) {
 	// RapiCa利用履歴
 	last_time := C.time_t(rapica.Attr.DateTime.Unix())
 
-	for i, _ := range currsys.SvcData(C.FELICA_SC_RAPICA_VALUE) {
+	for i, raw := range currsys.SvcData(C.FELICA_SC_RAPICA_VALUE) {
 		history := (*C.rapica_value_t)(currsys.SvcDataPtr(C.FELICA_SC_RAPICA_VALUE, i))
 		h_time := C.rapica_value_datetime(history, last_time)
 		if h_time == 0 {
@@ -146,6 +160,7 @@ func (rapica *RapiCa) Read(cardinfo felica.CardInfo) {
 		value.Amount = int(C.rapica_value_amount(history))
 		value.OnValue = -1
 		value.OffValue = -1
+		value.Raw = raw
 
 		rapica.Hist = append(rapica.Hist, &value)
 		last_time = h_time
@@ -171,20 +186,21 @@ func (rapica *RapiCa) Read(cardinfo felica.CardInfo) {
 	}
 
 	// RapiCa積増情報
-	for i, _ := range currsys.SvcData(C.FELICA_SC_RAPICA_CHARGE) {
+	for i, raw := range currsys.SvcData(C.FELICA_SC_RAPICA_CHARGE) {
 		charge := (*C.rapica_charge_t)(currsys.SvcDataPtr(C.FELICA_SC_RAPICA_CHARGE, i))
 		c_time := C.rapica_charge_date(charge)
 		if c_time == 0 {
 			continue
 		}
 
-		raw := RapicaCharge{}
-		raw.Date = time.Unix(int64(c_time), 0)
-		raw.Charge = int(C.rapica_charge_charge(charge))
-		raw.Premier = int(C.rapica_charge_premier(charge))
-		raw.Company = int(C.rapica_charge_company(charge))
+		c := RapicaCharge{}
+		c.Date = time.Unix(int64(c_time), 0)
+		c.Charge = int(C.rapica_charge_charge(charge))
+		c.Premier = int(C.rapica_charge_premier(charge))
+		c.Company = int(C.rapica_charge_company(charge))
+		c.Raw = raw
 
-		rapica.Charges = append(rapica.Charges, &raw)
+		rapica.Charges = append(rapica.Charges, &c)
 	}
 }
 
@@ -198,17 +214,44 @@ func (rapica *RapiCa) ShowInfo(cardinfo felica.CardInfo, options *felica.Options
 	// データの読込み
 	rapica.Read(cardinfo)
 
+	// インデント
+	indent := 0
+	indent_space := ""
+
+	if options.Hex {
+		indent = 38
+		indent_space = strings.Repeat(" ", indent)
+	}
+
 	// 表示
 	attr := rapica.Attr
 
-	fmt.Printf(`[発行情報]
+	fmt.Println("\n[発行情報]")
+
+	if options.Hex {
+		fmt.Println()
+		for _, v := range rapica.Info.Raw {
+			fmt.Printf("   %16X\n", v)
+		}
+	}
+
+	fmt.Printf(
+		`
   事業者: %v
   発行日: %s
   デポジット金額: %d円
 `, rapica.Info.CompanyName(), rapica.Info.Date.Format("2006-01-02"), rapica.Info.Deposit)
 
-	fmt.Println()
-	fmt.Printf(`[属性情報]
+	fmt.Println("\n[属性情報]")
+
+	if options.Hex {
+		fmt.Println()
+		for _, v := range rapica.Attr.Raw {
+			fmt.Printf("   %16X\n", v)
+		}
+	}
+
+	fmt.Printf(`
   直近処理日時:	%s
   事業者:	%v
   整理券番号:	%d
@@ -231,12 +274,14 @@ func (rapica *RapiCa) ShowInfo(cardinfo felica.CardInfo, options *felica.Options
 		attr.Amount, attr.Premier, attr.Point, attr.No, attr.OnBusstop, attr.OffBusstop,
 		attr.Payment, attr.Point2)
 
-	if options.Extend {
-		fmt.Println()
-		fmt.Println("[利用履歴（元データ）]")
-		fmt.Println("      日時      利用種別     残額         事業者 系統 / 停留所 (装置)")
-		fmt.Println("  -------------------------------------------------------------------------------------")
+	if options.Extend || options.Hex {
+		fmt.Println("\n[利用履歴（元データ）]\n")
+		fmt.Printf("%s       日時     利用種別      残額         事業者 系統 / 停留所 (装置)\n", indent_space)
+		fmt.Printf("  %s\n", strings.Repeat("-", indent+100))
 		for _, value := range rapica.Hist {
+			if options.Hex {
+				fmt.Printf("   %16X   ", value.Raw)
+			}
 			fmt.Printf("   %s    %v  %8d円    %v %v / %v (%d)\n",
 				value.DateTime.Format("01/02 15:04"),
 				value.KindName(),
@@ -248,12 +293,11 @@ func (rapica *RapiCa) ShowInfo(cardinfo felica.CardInfo, options *felica.Options
 		}
 	}
 
-	fmt.Println()
-	fmt.Println("[利用履歴]")
-	fmt.Println("          日時       利用種別      利用料金        残額         事業者 系統 / 停留所 (装置)")
-	fmt.Println("  ----------------------------------------------------------------------------------------------------------------------")
+	fmt.Println("\n[利用履歴]\n")
+	fmt.Printf("%s          日時       利用種別      利用料金        残額         事業者 系統 / 停留所 (装置)\n", indent_space)
+	fmt.Printf("  %s\n", strings.Repeat("-", indent+140))
 	for _, value := range rapica.Hist {
-		disp_payment := "---"
+		disp_payment := "---　"
 		disp_busstop := value.BusstopName()
 
 		if 0 <= value.OffValue && value.Payment == 0 {
@@ -273,18 +317,23 @@ func (rapica *RapiCa) ShowInfo(cardinfo felica.CardInfo, options *felica.Options
 			disp_busstop = fmt.Sprintf("%v -> %v", OnValue.BusstopName(), disp_busstop)
 		}
 
-		fmt.Printf("   %s    %v %14s\t%5d円    %v %v / %v (%d)\n",
+		if options.Hex {
+			fmt.Printf("   %16X   ", value.Raw)
+		}
+		fmt.Printf("   %s    %v %14s %9d円    %v %v / %v (%d)\n",
 			value.DateTime.Format("2006-01-02 15:04"), value.KindName(), disp_payment, value.Amount,
 			value.CompanyName(), value.BuslineName(), disp_busstop, value.Busno)
 	}
 
-	fmt.Println()
-	fmt.Println("[積増情報]")
-	fmt.Println("      日時       チャージ   プレミア    事業者")
-	fmt.Println("  ------------------------------------------------")
-	for _, raw := range rapica.Charges {
+	fmt.Println("\n[積増情報]\n")
+	fmt.Printf("%s      日時       チャージ   プレミア    事業者\n", indent_space)
+	fmt.Printf("  %s\n", strings.Repeat("-", indent+48))
+	for _, charge := range rapica.Charges {
+		if options.Hex {
+			fmt.Printf("   %16X   ", charge.Raw)
+		}
 		fmt.Printf("   %s %8d円 %8d円    %v\n",
-			raw.Date.Format("2006-01-02"), raw.Charge, raw.Premier, raw.CompanyName())
+			charge.Date.Format("2006-01-02"), charge.Charge, charge.Premier, charge.CompanyName())
 	}
 }
 
