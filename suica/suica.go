@@ -21,6 +21,7 @@ type Suica struct {
 	Hist []*SuicaValue // 利用履歴
 
 	cardinfo felica.CardInfo // カード情報（生データ）
+	syscode  uint16          // システムコード
 }
 
 // Suica利用履歴データ
@@ -41,30 +42,37 @@ type SuicaValue struct {
 
 const (
 	FELICA_POLLING_SUICA  = uint16(C.FELICA_POLLING_SUICA)  // Suicaシステムコード
+	FELICA_POLLING_IRUCA  = uint16(C.FELICA_POLLING_IRUCA)  // IruCaシステムコード
+	FELICA_POLLING_SAPICA = uint16(C.FELICA_POLLING_SAPICA) // SAPICAシステムコード
+	FELICA_POLLING_PASPY  = uint16(C.FELICA_POLLING_PASPY)  // PASPYシステムコード
+
 	FELICA_SC_SUICA_VALUE = uint16(C.FELICA_SC_SUICA_VALUE) // Suica利用履歴データ・サービスコード
 )
+
+// システムコード・リスト
+var SystemCodes = map[uint16]string{
+	FELICA_POLLING_SUICA:  "Suica",
+	FELICA_POLLING_IRUCA:  "IruCa",
+	FELICA_POLLING_SAPICA: "SAPICA",
+	FELICA_POLLING_PASPY:  "PASPY",
+}
 
 // *** felica_module メソッド
 // 対応カードか？
 func (module *felica_module) IsCard(cardinfo felica.CardInfo) bool {
-	for syscode, _ := range cardinfo {
-		if syscode == FELICA_POLLING_SUICA {
-			return true
-		}
-	}
-
-	return false
+	syscode := find_syscode(cardinfo)
+	return (syscode != 0)
 }
 
 // CardInfo を束縛した Engine を作成する
 func (module *felica_module) Bind(cardinfo felica.CardInfo) felica.Engine {
-	return &Suica{cardinfo: cardinfo}
+	return &Suica{cardinfo: cardinfo, syscode: find_syscode(cardinfo)}
 }
 
 // *** Suica メソッド
 // カード名
 func (suica *Suica) Name() string {
-	return string(Module)
+	return SystemCodes[suica.syscode]
 }
 
 // カード情報を読込む
@@ -77,7 +85,7 @@ func (suica *Suica) Read() {
 	cardinfo := suica.cardinfo
 
 	// システムデータの取得
-	currsys := cardinfo[FELICA_POLLING_SUICA]
+	currsys := cardinfo[suica.syscode]
 
 	// Suica利用履歴
 	for _, raw := range currsys.Services[FELICA_SC_SUICA_VALUE] {
@@ -201,6 +209,18 @@ func (value *SuicaValue) OutStationName() interface{} {
 // 端末種
 func (value *SuicaValue) TypeName() interface{} {
 	return suica_disp_name("TYPE", value.Type, 4)
+}
+
+// *** 関数
+// システムコードを検索する
+func find_syscode(cardinfo felica.CardInfo) uint16 {
+	for syscode, _ := range cardinfo {
+		if len(SystemCodes[syscode]) != 0 {
+			return syscode
+		}
+	}
+
+	return 0
 }
 
 // ***
