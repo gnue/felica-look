@@ -99,7 +99,7 @@ func (rapica *RapiCa) Read(cardinfo felica.CardInfo) {
 	currsys := cardinfo[rapica.SystemCode()]
 
 	// RapiCa発行情報
-	rapica.Info.Raw = currsys.SvcData(C.FELICA_SC_RAPICA_INFO)
+	rapica.Info.Raw = currsys.Services[uint16(C.FELICA_SC_RAPICA_INFO)]
 
 	info := (*C.rapica_info_t)(currsys.SvcDataPtr(C.FELICA_SC_RAPICA_INFO, 0))
 	i_time := C.rapica_info_date(info)
@@ -109,7 +109,7 @@ func (rapica *RapiCa) Read(cardinfo felica.CardInfo) {
 	rapica.Info.Date = time.Unix(int64(i_time), 0)
 
 	// RapiCa属性情報
-	rapica.Attr.Raw = currsys.SvcData(C.FELICA_SC_RAPICA_ATTR)
+	rapica.Attr.Raw = currsys.Services[uint16(C.FELICA_SC_RAPICA_ATTR)]
 
 	// RapiCa属性情報(1)
 	attr1 := (*C.rapica_attr1_t)(currsys.SvcDataPtr(C.FELICA_SC_RAPICA_ATTR, 0))
@@ -143,7 +143,7 @@ func (rapica *RapiCa) Read(cardinfo felica.CardInfo) {
 	// RapiCa利用履歴
 	last_time := C.time_t(rapica.Attr.DateTime.Unix())
 
-	for i, raw := range currsys.SvcData(C.FELICA_SC_RAPICA_VALUE) {
+	for i, raw := range currsys.Services[uint16(C.FELICA_SC_RAPICA_VALUE)] {
 		history := (*C.rapica_value_t)(currsys.SvcDataPtr(C.FELICA_SC_RAPICA_VALUE, i))
 		h_time := C.rapica_value_datetime(history, last_time)
 		if h_time == 0 {
@@ -186,7 +186,7 @@ func (rapica *RapiCa) Read(cardinfo felica.CardInfo) {
 	}
 
 	// RapiCa積増情報
-	for i, raw := range currsys.SvcData(C.FELICA_SC_RAPICA_CHARGE) {
+	for i, raw := range currsys.Services[uint16(C.FELICA_SC_RAPICA_CHARGE)] {
 		charge := (*C.rapica_charge_t)(currsys.SvcDataPtr(C.FELICA_SC_RAPICA_CHARGE, i))
 		c_time := C.rapica_charge_date(charge)
 		if c_time == 0 {

@@ -28,13 +28,24 @@ func find_module(cardinfo felica.CardInfo, modules []felica.Module) felica.Modul
 	return nil
 }
 
+// コード・リストを文字列のリストにする
+func codes_to_strings(codes []uint16) []string {
+	var list []string
+
+	for _, code := range codes {
+		list = append(list, fmt.Sprintf("%04X", code))
+	}
+
+	return list
+}
+
 // カード情報を簡易出力する
 func show_info(cardinfo felica.CardInfo) {
 	for syscode, currsys := range cardinfo {
 		fmt.Printf("SYSTEM CODE: %04X\n", syscode)
 		fmt.Println("  IDm: ", currsys.IDm)
 		fmt.Println("  PMm: ", currsys.PMm)
-		fmt.Println("  SERVICE CODES: ", currsys.ServiceCodes)
+		fmt.Println("  SERVICE CODES: ", codes_to_strings(currsys.ServiceCodes))
 	}
 }
 
@@ -46,7 +57,7 @@ func dump_info(cardinfo felica.CardInfo) {
 		fmt.Println("  PMm: ", currsys.PMm)
 
 		for svccode, data := range currsys.Services {
-			fmt.Println("  SERVICE CODE: ", svccode)
+			fmt.Printf("  SERVICE CODE: %04X\n", svccode)
 
 			for _, v := range data {
 				fmt.Printf("      %X\n", v)
