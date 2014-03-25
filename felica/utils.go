@@ -7,6 +7,7 @@ import (
 	"launchpad.net/goyaml"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 // ファイルを検索ディレクトリから探す
@@ -24,8 +25,11 @@ func search_file(fname string, dirs []string) (string, error) {
 
 // YAML を読込む
 func LoadYAML(fname string) (map[interface{}]interface{}, error) {
+	cmd, _ := filepath.EvalSymlinks(os.Args[0])
+	bindir := filepath.Dir(cmd)
+	moddir := filepath.Join(bindir, strings.TrimSuffix(fname, ".yml"))
 
-	dirs := []string{".", filepath.Dir(os.Args[0])}
+	dirs := []string{".", bindir, moddir}
 	path, err := search_file(fname, dirs)
 
 	if err != nil {
