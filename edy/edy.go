@@ -3,6 +3,7 @@ package edy
 import (
 	"../felica"
 	"fmt"
+	"strings"
 	"time"
 	"unsafe"
 )
@@ -27,6 +28,8 @@ type Edy struct {
 // Edyカード情報
 type EdyInfo struct {
 	EdyNo []byte // Edy番号
+
+	Raw [][]byte // Rawデータ
 }
 
 // Edy利用履歴データ
@@ -39,6 +42,8 @@ type EdyValue struct {
 
 	Charge  int // チャージ
 	Payment int // 支払い
+
+	Raw []byte // Rawデータ
 }
 
 const (
@@ -84,8 +89,10 @@ func (edy *Edy) Read() {
 
 	// Edyカード情報
 	raw_info := currsys.Services[FELICA_SC_EDY_INFO]
+	edy.Info.Raw = raw_info
 
 	info := (*C.edy_info0_t)(felica.DataPtr(&raw_info[0]))
+
 	edyno := unsafe.Pointer(&info.edyno[0])
 	edy.Info.EdyNo = C.GoBytes(edyno, C.int(unsafe.Sizeof(edyno)))
 
@@ -103,6 +110,7 @@ func (edy *Edy) Read() {
 		value.No = int(C.edy_value_no(history))
 		value.Use = int(C.edy_value_use(history))
 		value.Rest = int(C.edy_value_rest(history))
+		value.Raw = raw
 
 		edy.Hist = append(edy.Hist, &value)
 	}
@@ -127,16 +135,33 @@ func (edy *Edy) ShowInfo(options *felica.Options) {
 	// データの読込み
 	edy.Read()
 
-	// 表示
-	fmt.Println("[Edyカード情報]")
-	fmt.Printf("  Edy番号: %v\n", edy.Info.EdyNoDisp())
+	// インデント
+	indent := 0
+	indent_space := ""
 
-	if options.Extend {
+	if options.Hex {
+		indent = 38
+		indent_space = strings.Repeat(" ", indent)
+	}
+
+	// 表示
+	fmt.Println("\n[Edyカード情報]")
+	if options.Hex {
 		fmt.Println()
-		fmt.Println("[利用履歴（元データ）]")
-		fmt.Println("      利用年月日         支払い        残額  (連番)  タイプ")
-		fmt.Println("  -------------------------------------------------------------------------------------")
+		for _, v := range edy.Info.Raw {
+			fmt.Printf("   %16X\n", v)
+		}
+	}
+	fmt.Printf("\n  Edy番号: %v\n", edy.Info.EdyNoDisp())
+
+	if options.Extend || options.Hex {
+		fmt.Println("\n[利用履歴（元データ）]\n")
+		fmt.Printf("%s      利用年月日         支払い        残額  (連番)  タイプ\n", indent_space)
+		fmt.Printf("  %s\n", strings.Repeat("-", indent+85))
 		for _, value := range edy.Hist {
+			if options.Hex {
+				fmt.Printf("   %16X   ", value.Raw)
+			}
 			fmt.Printf("   %s  %8d円  %8d円  (%4d)  %v\n",
 				value.DateTime.Format("2006-01-02 15:04"),
 				value.Use,
@@ -146,11 +171,13 @@ func (edy *Edy) ShowInfo(options *felica.Options) {
 		}
 	}
 
-	fmt.Println()
-	fmt.Println("[利用履歴]")
-	fmt.Println("      利用年月日        チャージ      支払い        残額  (連番)  タイプ")
-	fmt.Println("  ----------------------------------------------------------------------------------------------------------------------")
+	fmt.Println("\n[利用履歴]\n")
+	fmt.Printf("%s      利用年月日        チャージ      支払い        残額  (連番)  タイプ\n", indent_space)
+	fmt.Printf("  %s\n", strings.Repeat("-", indent+98))
 	for _, value := range edy.Hist {
+		if options.Hex {
+			fmt.Printf("   %16X   ", value.Raw)
+		}
 		fmt.Printf("   %s  %10v  %10v  %8d円  (%4d)  %v\n",
 			value.DateTime.Format("2006-01-02 15:04"),
 			disp_money(value.Charge),
