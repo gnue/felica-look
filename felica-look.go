@@ -2,7 +2,6 @@ package main
 
 import (
 	"./felica"
-	"./rapica"
 	"flag"
 	"fmt"
 	"os"
@@ -13,7 +12,7 @@ import (
 // コマンドの使い方
 func usage() {
 	cmd := os.Args[0]
-	fmt.Fprintf(os.Stderr, "Usage of %s:\n", filepath.Base(cmd))
+	fmt.Fprintf(os.Stderr, "usage: %s [options] [file...]\n", filepath.Base(cmd))
 	flag.PrintDefaults()
 	os.Exit(0)
 }
@@ -65,18 +64,15 @@ func main() {
 	help := flag.Bool("h", false, "help")
 	flag.Parse()
 
-	if *help || len(flag.Args()) == 0 {
+	if *help {
 		usage()
 	}
 
-	modules := []felica.Module{
-		&rapica.RapiCa{},
-	}
-
 	options := felica.Options{Extend: *extend}
+	modules := felica_modules()
 
-	for _, v := range flag.Args() {
-		cardinfo := felica.Read(v)
+	show := func(path string) {
+		cardinfo := felica.Read(path)
 
 		if *dump {
 			dump_info(cardinfo)
@@ -85,10 +81,20 @@ func main() {
 			if m != nil {
 				fmt.Printf("%s:\n", m.Name())
 				m.ShowInfo(cardinfo, &options)
+
+				// モジュールを初期状態にする
+				modules = felica_modules()
 			} else {
 				show_info(cardinfo)
 			}
 		}
+	}
 
+	if len(flag.Args()) == 0 {
+		show("")
+	} else {
+		for _, v := range flag.Args() {
+			show(v)
+		}
 	}
 }
