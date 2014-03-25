@@ -2,6 +2,7 @@ package main
 
 import (
 	"./felica"
+	"./rapica"
 	"flag"
 	"fmt"
 	"os"
@@ -17,8 +18,8 @@ func usage() {
 	os.Exit(0)
 }
 
-func find_module(cardinfo *felica.CardInfo, modules []felica.Module) felica.Module {
-	for syscode, _ := range *cardinfo {
+func find_module(cardinfo felica.CardInfo, modules []felica.Module) felica.Module {
+	for syscode, _ := range cardinfo {
 		code, _ := strconv.ParseUint(syscode, 16, 0)
 
 		for _, m := range modules {
@@ -32,8 +33,8 @@ func find_module(cardinfo *felica.CardInfo, modules []felica.Module) felica.Modu
 }
 
 // カード情報を簡易出力する
-func show_info(cardinfo *felica.CardInfo) {
-	for syscode, currsys := range *cardinfo {
+func show_info(cardinfo felica.CardInfo) {
+	for syscode, currsys := range cardinfo {
 		fmt.Println("SYSTEM CODE: ", syscode)
 		fmt.Println("  IDm: ", currsys.IDm)
 		fmt.Println("  PMm: ", currsys.PMm)
@@ -42,8 +43,8 @@ func show_info(cardinfo *felica.CardInfo) {
 }
 
 // カード情報をダンプ出力する
-func dump_info(cardinfo *felica.CardInfo) {
-	for syscode, currsys := range *cardinfo {
+func dump_info(cardinfo felica.CardInfo) {
+	for syscode, currsys := range cardinfo {
 		fmt.Println("SYSTEM CODE: ", syscode)
 		fmt.Println("  IDm: ", currsys.IDm)
 		fmt.Println("  PMm: ", currsys.PMm)
@@ -69,7 +70,10 @@ func main() {
 	}
 
 	modules := []felica.Module{
+		&rapica.RapiCa{},
 	}
+
+	options := felica.Options{Extend: *extend}
 
 	for _, v := range flag.Args() {
 		cardinfo := felica.Read(v)
@@ -80,7 +84,7 @@ func main() {
 			m := find_module(cardinfo, modules)
 			if m != nil {
 				fmt.Printf("%s:\n", m.Name())
-				m.ShowInfo(cardinfo, *extend)
+				m.ShowInfo(cardinfo, &options)
 			} else {
 				show_info(cardinfo)
 			}

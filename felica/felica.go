@@ -17,29 +17,34 @@ type SystemInfo struct {
 	Services     ServiceInfo
 }
 
+// オプションフラグ
+type Options struct {
+	Extend bool // 拡張表示
+}
+
 // サービス情報
 type ServiceInfo map[string]([][]byte)
 
 type Module interface {
-	Name() string                             // カード名
-	SystemCode() uint64                       // システムコード
-	ShowInfo(cardinfo *CardInfo, extend bool) // カード情報を表示する
+	Name() string                                 // カード名
+	SystemCode() uint64                           // システムコード
+	ShowInfo(cardinfo CardInfo, options *Options) // カード情報を表示する
 }
 
 // *** CardInfo のメソッド
 // システムコードから SystemInfo を取得する
-func (cardinfo CardInfo) sysinfo(syscode uint64) *SystemInfo {
+func (cardinfo CardInfo) SysInfo(syscode uint64) *SystemInfo {
 	return cardinfo[fmt.Sprintf("%04X", syscode)]
 }
 
 // サービスコードからデータを取得する
-func (sysinfo SystemInfo) svcdata(svccode uint64) [][]byte {
+func (sysinfo SystemInfo) SvcData(svccode uint64) [][]byte {
 	return sysinfo.Services[fmt.Sprintf("%04X", svccode)]
 }
 
 // C言語で使うためにデータにアクセスするポインタを取得する
-func (sysinfo *SystemInfo) svcdata_ptr(svccode uint64, index int) unsafe.Pointer {
-	data := sysinfo.svcdata(svccode)
+func (sysinfo *SystemInfo) SvcDataPtr(svccode uint64, index int) unsafe.Pointer {
+	data := sysinfo.SvcData(svccode)
 	raw := (*reflect.SliceHeader)(unsafe.Pointer(&data[index])).Data
 
 	return unsafe.Pointer(raw)

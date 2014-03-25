@@ -23,7 +23,7 @@ func search_file(fname string, dirs []string) (string, error) {
 }
 
 // YAML を読込む
-func load_yaml(fname string) (map[interface{}]interface{}, error) {
+func LoadYAML(fname string) (map[interface{}]interface{}, error) {
 
 	dirs := []string{".", filepath.Dir(os.Args[0])}
 	path, err := search_file(fname, dirs)
@@ -46,7 +46,7 @@ func load_yaml(fname string) (map[interface{}]interface{}, error) {
 }
 
 // テーブルを検索して表示用の文字列を返す
-func disp_name(tables map[interface{}]interface{}, name string, value int, base int, opt_values ...int) interface{} {
+func DispName(tables map[interface{}]interface{}, name string, value int, base int, opt_values ...int) interface{} {
 	var v interface{}
 
 	t := tables[name]
