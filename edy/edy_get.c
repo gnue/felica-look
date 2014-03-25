@@ -1,7 +1,7 @@
 #include "edy_get.h"
 
 
-// バイト列を int に変換する
+// バイト列(BE)を int に変換する
 static int bytes_to_int(const uint8_t bytes[], size_t len) {
 	int value = 0;
 
@@ -10,6 +10,35 @@ static int bytes_to_int(const uint8_t bytes[], size_t len) {
 	}
 
 	return value;
+}
+
+
+// バイト列(LE)を int に変換する
+static int le_to_int(const uint8_t bytes[], size_t len) {
+	int value = 0;
+
+	for (int i = len-1; 0 <= i; i--) {
+		value = (value << 8) + bytes[i];
+	}
+
+	return value;
+}
+
+
+// *** Edy残額情報（最終利用状況）
+// 残額(LE)
+int edy_last_rest(edy_last_t *last) {
+	return le_to_int(last->rest, sizeof(last->rest));
+}
+
+// 直近使用金額(LE) チャージのときは更新されない場合がある
+int edy_last_use(edy_last_t *last) {
+	return le_to_int(last->use, sizeof(last->use));
+}
+
+// 取引通番(LE)
+int edy_last_no(edy_last_t *last) {
+	return le_to_int(last->no, sizeof(last->no));
 }
 
 

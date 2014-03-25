@@ -20,6 +20,7 @@ var Module felica_module = "Edy"
 // Edy
 type Edy struct {
 	Info EdyInfo     // Edyカード情報
+	Last EdyLast     // Edy残額情報
 	Hist []*EdyValue // 利用履歴
 
 	cardinfo felica.CardInfo // カード情報（生データ）
@@ -28,6 +29,15 @@ type Edy struct {
 // Edyカード情報
 type EdyInfo struct {
 	EdyNo []byte // Edy番号
+
+	Raw [][]byte // Rawデータ
+}
+
+// Edy残額情報（最終利用状況）
+type EdyLast struct {
+	Rest int // 残額
+	Use  int // 直近使用金額（チャージのときは更新されない場合がある）
+	No   int // 取引通番
 
 	Raw [][]byte // Rawデータ
 }
@@ -49,6 +59,7 @@ type EdyValue struct {
 const (
 	FELICA_POLLING_EDY  = uint16(C.FELICA_POLLING_EDY)  // Edyシステムコード
 	FELICA_SC_EDY_INFO  = uint16(C.FELICA_SC_EDY_INFO)  // Edyカード情報・サービスコード
+	FELICA_SC_EDY_LAST  = uint16(C.FELICA_SC_EDY_LAST)  // Edy残額情報・サービスコード
 	FELICA_SC_EDY_VALUE = uint16(C.FELICA_SC_EDY_VALUE) // Edy利用履歴データ・サービスコード
 )
 
@@ -95,6 +106,15 @@ func (edy *Edy) Read() {
 
 	edyno := unsafe.Pointer(&info.edyno[0])
 	edy.Info.EdyNo = C.GoBytes(edyno, C.int(unsafe.Sizeof(edyno)))
+
+	// Edy残額情報（最終利用状況）
+	raw_last := currsys.Services[FELICA_SC_EDY_LAST]
+	edy.Last.Raw = raw_last
+
+	last := (*C.edy_last_t)(felica.DataPtr(&raw_last[0]))
+	edy.Last.Rest = int(C.edy_last_rest(last))
+	edy.Last.Use = int(C.edy_last_use(last))
+	edy.Last.No = int(C.edy_last_no(last))
 
 	// Edy利用履歴
 	for _, raw := range currsys.Services[FELICA_SC_EDY_VALUE] {
@@ -153,6 +173,19 @@ func (edy *Edy) ShowInfo(options *felica.Options) {
 		}
 	}
 	fmt.Printf("\n  Edy番号: %v\n", edy.Info.EdyNoDisp())
+
+	fmt.Println("\n[Edy残額情報]")
+	if options.Hex {
+		fmt.Println()
+		for _, v := range edy.Last.Raw {
+			fmt.Printf("   %16X\n", v)
+		}
+	}
+	fmt.Printf(`
+  残額: %14d円
+  直近使用金額: %6d円
+  取引通番: %10d
+`, edy.Last.Rest, edy.Last.Use, edy.Last.No)
 
 	if options.Extend || options.Hex {
 		fmt.Println("\n[利用履歴（元データ）]\n")
