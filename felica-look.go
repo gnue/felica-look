@@ -78,15 +78,13 @@ func main() {
 		usage()
 	}
 
-	modules := felica_modules()
-
 	show := func(path string) {
 		cardinfo := felica.Read(path)
 
 		if *dump {
 			dump_info(cardinfo)
 		} else {
-			m := find_module(cardinfo, modules)
+			m := find_module(cardinfo, felica_modules)
 			if m != nil {
 				engine := m.Bind(cardinfo)
 

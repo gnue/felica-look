@@ -7,12 +7,8 @@ import (
 	"./suica"
 )
 
-func felica_modules() []felica.Module {
-	modules := []felica.Module{
-		&suica.Module,
-		&edy.Module,
-		&rapica.Module,
-	}
-
-	return modules
+var felica_modules = []felica.Module{
+	&suica.Module,
+	&edy.Module,
+	&rapica.Module,
 }
