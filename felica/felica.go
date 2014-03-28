@@ -11,14 +11,14 @@ type SystemInfo struct {
 	Services     ServiceInfo
 }
 
+// サービス情報
+type ServiceInfo map[uint16]([][]byte)
+
 // オプションフラグ
 type Options struct {
 	Extend bool // 拡張表示
 	Hex    bool // データの16進表示もいっしょに表示する
 }
-
-// サービス情報
-type ServiceInfo map[uint16]([][]byte)
 
 type Module interface {
 	IsCard(cardinfo CardInfo) bool // 対応カードか？
