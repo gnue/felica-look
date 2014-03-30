@@ -44,7 +44,7 @@ func show_info(cardinfo felica.CardInfo) {
 		fmt.Printf("SYSTEM CODE: %04X\n", syscode)
 		fmt.Println("  IDm: ", currsys.IDm)
 		fmt.Println("  PMm: ", currsys.PMm)
-		fmt.Println("  SERVICE CODES: ", codes_to_strings(currsys.ServiceCodes))
+		fmt.Println("  SERVICE CODES: ", codes_to_strings(currsys.ServiceCodes()))
 	}
 }
 
