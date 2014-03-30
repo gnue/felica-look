@@ -21,6 +21,7 @@ type ServiceInfo map[uint16]([][]byte)
 type Options struct {
 	Extend bool // 拡張表示
 	Hex    bool // データの16進表示もいっしょに表示する
+	Format int  // 出力フォーマット
 }
 
 type Engine interface {
@@ -32,7 +33,6 @@ type Engine interface {
 const (
 	OUTPUT_NORMAL = iota
 	OUTPUT_JSON
-	OUTPUT_LTSV
 )
 
 // *** ソート用

@@ -62,10 +62,15 @@ func main() {
 	flag.BoolVar(&opts.Hex, "x", false, "with hex dump")
 	dump := flag.Bool("d", false, "dump")
 	help := flag.Bool("h", false, "help")
+	json := flag.Bool("json", false, "output JSON format")
 	flag.Parse()
 
 	if *help {
 		usage()
+	}
+
+	if *json {
+		opts.Format = felica.OUTPUT_JSON
 	}
 
 	show := func(path string) {
