@@ -15,12 +15,12 @@ static int bytes_to_int(const uint8_t bytes[], size_t len) {
 
 // *** RapiCa発行情報
 // 事業者
-int rapica_info_company(rapica_info_t *info) {
+int rapica_info_company(const rapica_info_t *info) {
 	return bytes_to_int(info->company, sizeof(info->company));
 }
 
 // 発行日
-time_t rapica_info_date(rapica_info_t *info) {
+time_t rapica_info_date(const rapica_info_t *info) {
 	if (info->day == 0) return 0;
 
 	struct tm tm = {
@@ -33,13 +33,13 @@ time_t rapica_info_date(rapica_info_t *info) {
 }
 
 // デポジット
-int rapica_info_deposit(rapica_info_t *info) {
+int rapica_info_deposit(const rapica_info_t *info) {
 	return bytes_to_int(info->deposit, sizeof(info->deposit));
 }
 
 // *** RapiCa属性情報(1)
 // 直近処理日時
-time_t rapica_attr_time(rapica_attr1_t *attr) {
+time_t rapica_attr_time(const rapica_attr1_t *attr) {
 	if (attr->day == 0) return 0;
 
 	struct tm tm = {
@@ -54,66 +54,66 @@ time_t rapica_attr_time(rapica_attr1_t *attr) {
 }
 
 // 事業者
-int rapica_attr_company(rapica_attr1_t *attr) {
+int rapica_attr_company(const rapica_attr1_t *attr) {
 	return bytes_to_int(attr->company, sizeof(attr->company));
 }
 
 // 停留所
-int rapica_attr_busstop(rapica_attr1_t *attr) {
+int rapica_attr_busstop(const rapica_attr1_t *attr) {
 	return bytes_to_int(attr->busstop, sizeof(attr->busstop));
 }
 
 // 系統
-int rapica_attr_busline(rapica_attr1_t *attr) {
+int rapica_attr_busline(const rapica_attr1_t *attr) {
 	return bytes_to_int(attr->busline, sizeof(attr->busline));
 }
 
 // 装置・車号？
-int rapica_attr_busno(rapica_attr1_t *attr) {
+int rapica_attr_busno(const rapica_attr1_t *attr) {
 	return bytes_to_int(attr->busno, sizeof(attr->busno));
 }
 
 // *** RapiCa属性情報(2)
 // 利用種別
-int rapica_attr_kind(rapica_attr2_t *attr) {
+int rapica_attr_kind(const rapica_attr2_t *attr) {
 	return bytes_to_int(attr->kind, sizeof(attr->kind));
 }
 
 // 残額
-int rapica_attr_amount(rapica_attr2_t *attr) {
+int rapica_attr_amount(const rapica_attr2_t *attr) {
 	return bytes_to_int(attr->amount, sizeof(attr->amount));
 }
 
 // プレミア
-int rapica_attr_premier(rapica_attr2_t *attr) {
+int rapica_attr_premier(const rapica_attr2_t *attr) {
 	return bytes_to_int(attr->premier, sizeof(attr->premier));
 }
 
 // ポイント
-int rapica_attr_point(rapica_attr2_t *attr) {
+int rapica_attr_point(const rapica_attr2_t *attr) {
 	return bytes_to_int(attr->point, sizeof(attr->point));
 }
 
 // 取引連番
-int rapica_attr_no(rapica_attr2_t *attr) {
+int rapica_attr_no(const rapica_attr2_t *attr) {
 	return bytes_to_int(attr->no, sizeof(attr->no));
 }
 
 // *** RapiCa属性情報(3)
 // 利用金額
-int rapica_attr_payment(rapica_attr3_t *attr) {
+int rapica_attr_payment(const rapica_attr3_t *attr) {
 	return bytes_to_int(attr->payment, sizeof(attr->payment));
 }
 
 // *** RapiCa属性情報(4)
 // ポイント？
-int rapica_attr_point2(rapica_attr4_t *attr) {
+int rapica_attr_point2(const rapica_attr4_t *attr) {
 	return bytes_to_int(attr->point, sizeof(attr->point));
 }
 
 // *** RapiCa履歴データ
 // 処理日時
-time_t rapica_value_datetime(rapica_value_t *value, time_t last_time) {
+time_t rapica_value_datetime(const rapica_value_t *value, time_t last_time) {
 	struct tm last_tm;
 	int date = rapica_date(value);
 	int time = rapica_time(value);
@@ -139,7 +139,7 @@ time_t rapica_value_datetime(rapica_value_t *value, time_t last_time) {
 }
 
 // 停留所
-int rapica_value_busstop(rapica_value_t *value) {
+int rapica_value_busstop(const rapica_value_t *value) {
 	if (rapica_is_iwasaki(value)) {
 		// いわさきグループ
 		return bytes_to_int(value->as.iwasaki.busstop, sizeof(value->as.iwasaki.busstop));
@@ -150,7 +150,7 @@ int rapica_value_busstop(rapica_value_t *value) {
 }
 
 // 系統
-int rapica_value_busline(rapica_value_t *value) {
+int rapica_value_busline(const rapica_value_t *value) {
 	if (rapica_is_iwasaki(value)) {
 		// いわさきグループ
 		return bytes_to_int(value->as.iwasaki.busline, sizeof(value->as.iwasaki.busline));
@@ -161,7 +161,7 @@ int rapica_value_busline(rapica_value_t *value) {
 }
 
 // 装置
-int rapica_value_busno(rapica_value_t *value) {
+int rapica_value_busno(const rapica_value_t *value) {
 	if (rapica_is_iwasaki(value)) {
 		// いわさきグループ
 		return bytes_to_int(value->as.iwasaki.busno, sizeof(value->as.iwasaki.busno));
@@ -172,13 +172,13 @@ int rapica_value_busno(rapica_value_t *value) {
 }
 
 // 残額
-int rapica_value_amount(rapica_value_t *value) {
+int rapica_value_amount(const rapica_value_t *value) {
 	return bytes_to_int(value->amount, sizeof(value->amount));
 }
 
 // *** RapiCa積増データ
 // 積増日付
-time_t rapica_charge_date(rapica_charge_t *charge) {
+time_t rapica_charge_date(const rapica_charge_t *charge) {
 	if (charge->day == 0) return 0;
 
 	struct tm tm = {
@@ -191,16 +191,16 @@ time_t rapica_charge_date(rapica_charge_t *charge) {
 }
 
 // 積増金額
-int rapica_charge_charge(rapica_charge_t *charge) {
+int rapica_charge_charge(const rapica_charge_t *charge) {
 	return bytes_to_int(charge->charge, sizeof(charge->charge));
 }
 
 // プレミア
-int rapica_charge_premier(rapica_charge_t *charge) {
+int rapica_charge_premier(const rapica_charge_t *charge) {
 	return bytes_to_int(charge->premier, sizeof(charge->premier));
 }
 
 // 事業者
-int rapica_charge_company(rapica_charge_t *charge) {
+int rapica_charge_company(const rapica_charge_t *charge) {
 	return bytes_to_int(charge->company, sizeof(charge->company));
 }
