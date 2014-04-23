@@ -27,24 +27,24 @@ static int le_to_int(const uint8_t bytes[], size_t len) {
 
 // *** Edy残額情報（最終利用状況）
 // 残額(LE)
-int edy_last_rest(edy_last_t *last) {
+int edy_last_rest(const edy_last_t *last) {
 	return le_to_int(last->rest, sizeof(last->rest));
 }
 
 // 直近使用金額(LE) チャージのときは更新されない場合がある
-int edy_last_use(edy_last_t *last) {
+int edy_last_use(const edy_last_t *last) {
 	return le_to_int(last->use, sizeof(last->use));
 }
 
 // 取引通番(LE)
-int edy_last_no(edy_last_t *last) {
+int edy_last_no(const edy_last_t *last) {
 	return le_to_int(last->no, sizeof(last->no));
 }
 
 
 // *** Edy履歴データ
 // 処理日時
-time_t edy_value_datetime(edy_value_t *value) {
+time_t edy_value_datetime(const edy_value_t *value) {
 	int days = edy_days(value);	// 累積日数（2000年から）
 	int sec = edy_sec(value);
 
@@ -64,21 +64,21 @@ time_t edy_value_datetime(edy_value_t *value) {
 }
 
 // タイプ
-int edy_value_type(edy_value_t *value) {
+int edy_value_type(const edy_value_t *value) {
 	return value->type;
 }
 
 // 入金／出金
-int edy_value_use(edy_value_t *value) {
+int edy_value_use(const edy_value_t *value) {
 	return edy_use(value);
 }
 
 // 残額
-int edy_value_rest(edy_value_t *value) {
+int edy_value_rest(const edy_value_t *value) {
 	return edy_rest(value);
 }
 
 // 連番
-int edy_value_no(edy_value_t *value) {
+int edy_value_no(const edy_value_t *value) {
 	return bytes_to_int(value->no, sizeof(value->no));
 }
