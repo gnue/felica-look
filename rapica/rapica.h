@@ -105,7 +105,7 @@ typedef struct {
 	time:12;	///< 時*100+分
 #endif
 
-	uint8_t		company;			///< 事業者
+	uint8_t		company;		///< 事業者
 	union {
 		/// Rapica加盟局社
 		struct {
@@ -123,7 +123,7 @@ typedef struct {
 		} iwasaki;
 	} as;
 	uint8_t		kind;			///< 利用種別
-	uint8_t		amount[3];	///< 残額
+	uint8_t		amount[3];		///< 残額
 } rapica_value_t;
 
 
