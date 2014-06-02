@@ -1,10 +1,11 @@
 package suica
 
 import (
-	"../felica"
 	"fmt"
 	"strings"
 	"time"
+
+	"github.com/gnue/felica-look/felica"
 )
 
 /*

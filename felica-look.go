@@ -1,11 +1,12 @@
 package main
 
 import (
-	"./felica"
 	"flag"
 	"fmt"
 	"os"
 	"path/filepath"
+
+	"github.com/gnue/felica-look/felica"
 )
 
 // コマンドの使い方
