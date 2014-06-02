@@ -48,6 +48,12 @@
 
 ## ビルド
 
+インストールする場合
+
+	$ go get github.com/gnue/felica-look
+
+* `$GOPATH/bin` にバイナリがインストールされます
+
 ソースコードからビルドする場合
 
 	$ git clone https://github.com/gnue/felica-look
