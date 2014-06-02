@@ -1,11 +1,12 @@
 package edy
 
 import (
-	"../felica"
 	"fmt"
 	"strings"
 	"time"
 	"unsafe"
+
+	"github.com/gnue/felica-look/felica"
 )
 
 /*

@@ -86,8 +86,6 @@ func Read(path string) CardInfo {
 			action: func(match []string) {
 				code, _ := strconv.ParseUint(match[1], 16, 0)
 				svccode = uint16(code)
-
-				currsys.ServiceCodes = append(currsys.ServiceCodes, svccode)
 				currsys.Services[svccode] = [][]byte{}
 			},
 		},
@@ -101,7 +99,6 @@ func Read(path string) CardInfo {
 				code, _ := strconv.ParseUint(match[1], 16, 0)
 				attr, _ := strconv.ParseUint(match[2], 16, 0)
 				svccode = uint16(code<<6 + attr)
-				currsys.ServiceCodes = append(currsys.ServiceCodes, svccode)
 				currsys.Services[svccode] = [][]byte{}
 			},
 		},
@@ -158,7 +155,7 @@ func Read(path string) CardInfo {
 
 // 空の SystemInfo を作成する
 func empty_sysinfo() *SystemInfo {
-	return &SystemInfo{ServiceCodes: []uint16{}, Services: make(ServiceInfo)}
+	return &SystemInfo{Services: make(ServiceInfo)}
 }
 
 // 正規表現をコンパイルする

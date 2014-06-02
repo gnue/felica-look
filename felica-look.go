@@ -1,11 +1,12 @@
 package main
 
 import (
-	"./felica"
 	"flag"
 	"fmt"
 	"os"
 	"path/filepath"
+
+	"github.com/gnue/felica-look/felica"
 )
 
 // コマンドの使い方
@@ -44,7 +45,7 @@ func show_info(cardinfo felica.CardInfo) {
 		fmt.Printf("SYSTEM CODE: %04X\n", syscode)
 		fmt.Println("  IDm: ", currsys.IDm)
 		fmt.Println("  PMm: ", currsys.PMm)
-		fmt.Println("  SERVICE CODES: ", codes_to_strings(currsys.ServiceCodes))
+		fmt.Println("  SERVICE CODES: ", codes_to_strings(currsys.ServiceCodes()))
 	}
 }
 
@@ -66,8 +67,10 @@ func dump_info(cardinfo felica.CardInfo) {
 }
 
 func main() {
-	extend := flag.Bool("e", false, "extend information")
-	hex := flag.Bool("x", false, "with hex dump")
+	opts := felica.Options{}
+
+	flag.BoolVar(&opts.Extend, "e", false, "extend information")
+	flag.BoolVar(&opts.Hex, "x", false, "with hex dump")
 	dump := flag.Bool("d", false, "dump")
 	help := flag.Bool("h", false, "help")
 	flag.Parse()
@@ -76,21 +79,18 @@ func main() {
 		usage()
 	}
 
-	options := felica.Options{Extend: *extend, Hex: *hex}
-	modules := felica_modules()
-
 	show := func(path string) {
 		cardinfo := felica.Read(path)
 
 		if *dump {
 			dump_info(cardinfo)
 		} else {
-			m := find_module(cardinfo, modules)
+			m := find_module(cardinfo, felica_modules)
 			if m != nil {
 				engine := m.Bind(cardinfo)
 
 				fmt.Printf("%s:\n", engine.Name())
-				engine.ShowInfo(&options)
+				engine.ShowInfo(&opts)
 			} else {
 				show_info(cardinfo)
 			}

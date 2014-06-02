@@ -1,18 +1,14 @@
 package main
 
 import (
-	"./edy"
-	"./felica"
-	"./rapica"
-	"./suica"
+	"github.com/gnue/felica-look/edy"
+	"github.com/gnue/felica-look/felica"
+	"github.com/gnue/felica-look/rapica"
+	"github.com/gnue/felica-look/suica"
 )
 
-func felica_modules() []felica.Module {
-	modules := []felica.Module{
-		&suica.Module,
-		&edy.Module,
-		&rapica.Module,
-	}
-
-	return modules
+var felica_modules = []felica.Module{
+	&suica.Module,
+	&edy.Module,
+	&rapica.Module,
 }
