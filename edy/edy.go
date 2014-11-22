@@ -14,9 +14,14 @@ import (
 */
 import "C"
 
-type felica_module string
+var moduleName = "Edy"
 
-var Module felica_module = "Edy"
+func init() {
+	felica.Register(moduleName, new(felica_module))
+}
+
+type felica_module struct {
+}
 
 // Edy
 type Edy struct {
@@ -87,7 +92,7 @@ func (module *felica_module) Bind(cardinfo felica.CardInfo) felica.Engine {
 // *** Edy メソッド
 // カード名
 func (edy *Edy) Name() string {
-	return string(Module)
+	return moduleName
 }
 
 // カード情報を読込む

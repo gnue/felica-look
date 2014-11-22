@@ -13,9 +13,14 @@ import (
 */
 import "C"
 
-type felica_module string
+var moduleName = "RapiCa"
 
-var Module felica_module = "RapiCa"
+func init() {
+	felica.Register(moduleName, new(felica_module))
+}
+
+type felica_module struct {
+}
 
 // RapiCa/鹿児島市交通局
 type RapiCa struct {
@@ -112,7 +117,7 @@ func (module *felica_module) Bind(cardinfo felica.CardInfo) felica.Engine {
 // *** RapiCa メソッド
 // カード名
 func (rapica *RapiCa) Name() string {
-	return string(Module)
+	return moduleName
 }
 
 // カード情報を読込む
