@@ -23,11 +23,6 @@ type Options struct {
 	Hex    bool // データの16進表示もいっしょに表示する
 }
 
-type Module interface {
-	IsCard(cardinfo CardInfo) bool // 対応カードか？
-	Bind(cardinfo CardInfo) Engine // CardInfo を束縛した Engine を作成する
-}
-
 type Engine interface {
 	Name() string              // カード名
 	ShowInfo(options *Options) // カード情報を表示する
@@ -40,15 +35,8 @@ const (
 	OUTPUT_LTSV
 )
 
-// 登録モジュール
-var Modules = make(map[string]Module)
-
-// モジュールの登録
-func Register(name string, module Module) {
-	Modules[name] = module
-}
-
 // *** ソート用
+
 type ByUint16 []uint16
 
 func (a ByUint16) Len() int           { return len(a) }
@@ -56,6 +44,7 @@ func (a ByUint16) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 func (a ByUint16) Less(i, j int) bool { return a[i] < a[j] }
 
 // *** SystemInfoメソッド
+
 func (sysinfo *SystemInfo) ServiceCodes() []uint16 {
 	codes := make([]uint16, 0, len(sysinfo.Services))
 
