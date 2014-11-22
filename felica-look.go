@@ -17,17 +17,6 @@ func usage() {
 	os.Exit(0)
 }
 
-// カードに対応するモジュールを探す
-func find_module(cardinfo felica.CardInfo, modules map[string]felica.Module) felica.Module {
-	for _, m := range modules {
-		if m.IsCard(cardinfo) {
-			return m
-		}
-	}
-
-	return nil
-}
-
 // コード・リストを文字列のリストにする
 func codes_to_strings(codes []uint16) []string {
 	var list []string
@@ -85,7 +74,7 @@ func main() {
 		if *dump {
 			dump_info(cardinfo)
 		} else {
-			m := find_module(cardinfo, felica.Modules)
+			m := felica.Find(cardinfo)
 			if m != nil {
 				engine := m.Bind(cardinfo)
 

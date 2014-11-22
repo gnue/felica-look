@@ -12,3 +12,14 @@ var Modules = make(map[string]Module)
 func Register(name string, module Module) {
 	Modules[name] = module
 }
+
+// カードに対応するモジュールを探す
+func Find(cardinfo CardInfo) Module {
+	for _, m := range Modules {
+		if m.IsCard(cardinfo) {
+			return m
+		}
+	}
+
+	return nil
+}
