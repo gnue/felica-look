@@ -13,9 +13,14 @@ import (
 */
 import "C"
 
-type felica_module string
+var moduleName = "Suica"
 
-var Module felica_module = "Suica"
+func init() {
+	felica.Register(moduleName, new(felica_module))
+}
+
+type felica_module struct {
+}
 
 // Suica
 type Suica struct {

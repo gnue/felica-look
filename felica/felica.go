@@ -40,6 +40,14 @@ const (
 	OUTPUT_LTSV
 )
 
+// 登録モジュール
+var Modules = make(map[string]Module)
+
+// モジュールの登録
+func Register(name string, module Module) {
+	Modules[name] = module
+}
+
 // *** ソート用
 type ByUint16 []uint16
 

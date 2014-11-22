@@ -18,7 +18,7 @@ func usage() {
 }
 
 // カードに対応するモジュールを探す
-func find_module(cardinfo felica.CardInfo, modules []felica.Module) felica.Module {
+func find_module(cardinfo felica.CardInfo, modules map[string]felica.Module) felica.Module {
 	for _, m := range modules {
 		if m.IsCard(cardinfo) {
 			return m
@@ -85,7 +85,7 @@ func main() {
 		if *dump {
 			dump_info(cardinfo)
 		} else {
-			m := find_module(cardinfo, felica_modules)
+			m := find_module(cardinfo, felica.Modules)
 			if m != nil {
 				engine := m.Bind(cardinfo)
 
