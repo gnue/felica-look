@@ -4,12 +4,14 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
-	"launchpad.net/goyaml"
 	"os"
 	"path/filepath"
 	"reflect"
 	"strings"
 	"unsafe"
+
+	"github.com/gfx/go-visual_width"
+	"launchpad.net/goyaml"
 )
 
 // C言語で使うためにデータにアクセスするポインタを取得する
@@ -82,4 +84,16 @@ func DispName(tables map[interface{}]interface{}, name string, value int, base i
 	}
 
 	return v
+}
+
+// 指定された表示文字になるように調整する
+func DispString(str string, width int) string {
+	s := visual_width.Truncate(str, true, width, "")
+	n := width - visual_width.Measure(s, true)
+
+	if 0 < n {
+		s = s + strings.Repeat(" ", n)
+	}
+
+	return s
 }
