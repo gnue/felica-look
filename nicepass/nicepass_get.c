@@ -58,6 +58,11 @@ int nicepass_value_proc(const nicepass_value_t *value) {
 	return nicepass_type(value);
 }
 
+// 利用金額種別
+int nicepass_value_use_kind(const nicepass_value_t *value) {
+	return nicepass_use_kind(value);
+}
+
 // 利用金額
 int nicepass_value_use(const nicepass_value_t *value) {
 	int16_t use = nicepass_use(value);

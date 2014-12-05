@@ -36,6 +36,7 @@
 #define nicepass_out_station(v)	(((v->station[2] & 0x0f) << 16) + (v->station[3] << 8) + v->station[4])	///< bits 20-39: 降車駅
 #define nicepass_type(v)		(v->proc >> 4)									///< bits 0-3: 使用装置
 #define nicepass_proc(v)		(v->proc & 0x0f)								///< bits 4-7: 処理種別
+#define nicepass_use_kind(v)	(v->use[0] >> 4)								///< bits 0-3: 利用金額種別
 #define nicepass_use(v)			(((v->use[0] & 0x0f) << 8) + v->use[1])			///< bits 4-15: 利用金額（支払いはマイナス）
 
 
@@ -64,7 +65,7 @@ typedef struct {
 
 #pragma mark bitfeilds2macro(use)
 #if 0
-	_:4;			///< 不明
+	use_kind:4;		///< 利用金額種別
 	use:12;			///< 利用金額（支払いはマイナス）
 #endif
 

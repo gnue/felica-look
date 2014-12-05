@@ -38,6 +38,7 @@ type NicepassValue struct {
 	OutStation int       // 降車駅
 	Type       int       // 端末種
 	Proc       int       // 処理
+	UseKind    int       // 利用金額種別
 	Use        int       // 利用金額（支払いはマイナス）
 	Balance    int       // 残額
 
@@ -102,6 +103,7 @@ func (nicepass *Nicepass) Read() {
 		value.OutStation = int(C.nicepass_value_out_station(history))
 		value.Type = int(C.nicepass_value_type(history))
 		value.Proc = int(C.nicepass_value_proc(history))
+		value.UseKind = int(C.nicepass_value_use_kind(history))
 		value.Use = int(C.nicepass_value_use(history))
 		value.Balance = int(C.nicepass_value_balance(history))
 		value.Raw = raw

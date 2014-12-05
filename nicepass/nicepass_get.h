@@ -8,5 +8,6 @@ int nicepass_value_in_station(const nicepass_value_t *value);	// 入場駅
 int nicepass_value_out_station(const nicepass_value_t *value);	// 出場駅
 int nicepass_value_type(const nicepass_value_t *value);			// 使用装置
 int nicepass_value_proc(const nicepass_value_t *value);			// 処理種別
+int nicepass_value_use_kind(const nicepass_value_t *value);		// 利用金額種別
 int nicepass_value_use(const nicepass_value_t *value);			// 利用金額
 int nicepass_value_balance(const nicepass_value_t *value);		// 残額
