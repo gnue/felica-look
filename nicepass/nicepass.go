@@ -24,10 +24,37 @@ type felica_module struct {
 
 // nice-pass/遠州鉄道
 type Nicepass struct {
+	Attr NicepassAttr     // 属性情報
 	Hist []*NicepassValue // 利用履歴
 
 	cardinfo felica.CardInfo // カード情報（生データ）
 	syscode  uint16          // システムコード
+}
+
+// nice-pass残額
+type NicepassAmount struct {
+	Charge  int // チャージ金額残額
+	Premium struct {
+		Kind   int // プレミアム残額種別
+		Amount int // プレミアム残額
+	}
+}
+
+// nice-pass属性情報データ
+type NicepassAttr struct {
+	Amounts    []NicepassAmount // 残額1~4
+	Date       time.Time        // 利用日
+	InTime     time.Time        // 乗車時刻
+	OutTime    time.Time        // 降車時刻
+	Type       int              // 端末種
+	Proc       int              // 処理
+	Use        int              // 直近利用金額（支払いはマイナス）
+	Balance    int              // 直近残額
+	InStation  int              // 乗車駅
+	OutStation int              // 降車駅
+	No         int              // 取引通番
+
+	Raw [][]byte // Rawデータ
 }
 
 // nice-pass利用履歴データ
@@ -48,6 +75,7 @@ type NicepassValue struct {
 const (
 	FELICA_POLLING_NICEPASS = uint16(C.FELICA_POLLING_NICEPASS) // nice-passシステムコード
 
+	FELICA_SC_NICEPASS_ATTR  = uint16(C.FELICA_SC_NICEPASS_ATTR)  // nice-pass属性情報・サービスコード
 	FELICA_SC_NICEPASS_VALUE = uint16(C.FELICA_SC_NICEPASS_VALUE) // nice-pass利用履歴データ・サービスコード
 )
 
@@ -87,6 +115,37 @@ func (nicepass *Nicepass) Read() {
 
 	// システムデータの取得
 	currsys := cardinfo[nicepass.syscode]
+
+	// nice-pass属性情報
+	raw_attr := currsys.Services[FELICA_SC_NICEPASS_ATTR]
+	nicepass.Attr.Raw = raw_attr
+
+	// nice-pass属性情報(1)
+	attr1 := (*C.nicepass_attr1_t)(felica.DataPtr(&raw_attr[0]))
+	for _, v := range attr1.amounts {
+		amount := NicepassAmount{}
+		amount.Charge = int(C.nicepass_amount_charge(&v))
+		amount.Premium.Kind = int(C.nicepass_amount_premium_kind(&v))
+		amount.Premium.Amount = int(C.nicepass_amount_premium(&v))
+		nicepass.Attr.Amounts = append(nicepass.Attr.Amounts, amount)
+	}
+
+	// nice-pass属性情報(2)
+	attr2 := (*C.nicepass_attr2_t)(felica.DataPtr(&raw_attr[1]))
+	in_time := C.nicepass_attr_in_time(attr2)
+	out_time := C.nicepass_attr_out_time(attr2)
+	nicepass.Attr.InTime = time.Unix(int64(in_time), 0)
+	nicepass.Attr.OutTime = time.Unix(int64(out_time), 0)
+	nicepass.Attr.Type = int(C.nicepass_attr_type(attr2))
+	nicepass.Attr.Proc = int(C.nicepass_attr_proc(attr2))
+	nicepass.Attr.Use = int(C.nicepass_attr_use(attr2))
+	nicepass.Attr.Balance = int(C.nicepass_attr_balance(attr2))
+
+	// nice-pass属性情報(3)
+	attr3 := (*C.nicepass_attr3_t)(felica.DataPtr(&raw_attr[2]))
+	nicepass.Attr.InStation = int(C.nicepass_attr_in_station(attr3))
+	nicepass.Attr.OutStation = int(C.nicepass_attr_out_station(attr3))
+	nicepass.Attr.No = int(C.nicepass_attr_no(attr3))
 
 	// nice-pass利用履歴
 	for _, raw := range currsys.Services[FELICA_SC_NICEPASS_VALUE] {
@@ -132,6 +191,42 @@ func (nicepass *Nicepass) ShowInfo(options *felica.Options) {
 	}
 
 	// 表示
+	attr := nicepass.Attr
+
+	fmt.Println("\n[属性情報]")
+
+	if options.Hex {
+		fmt.Println()
+		for _, v := range attr.Raw {
+			fmt.Printf("   %16X\n", v)
+		}
+	}
+
+	fmt.Println("\n  残額:          チャージ    プレミアム(種別)")
+
+	for _, v := range attr.Amounts {
+		if 0 < v.Charge || 0 < v.Premium.Amount {
+			fmt.Printf("                 %6d円    %6d円  (%d)\n", v.Charge, v.Premium.Amount, v.Premium.Kind)
+		}
+	}
+
+	fmt.Printf(`
+  乗車:          %s  %v
+  降車:          %s  %v
+  端末種:        %v
+  処理:          %v
+  直近利用金額:  %d円
+  直近残額:      %d円
+  取引通番:      %d
+`,
+		attr.InTime.Format("2006-01-02 15:04"), attr.InStationName(),
+		attr.OutTime.Format("2006-01-02 15:04"), attr.OutStationName(),
+		attr.TypeName(),
+		attr.ProcName(),
+		attr.Use,
+		attr.Balance,
+		attr.No)
+
 	if options.Extend || options.Hex {
 		fmt.Println("\n[利用履歴（元データ）]\n")
 		fmt.Printf("%s          日時         利用金額      残額     乗車駅    降車駅    装置番号     端末種    処理\n", indent_space)
@@ -177,6 +272,34 @@ func (nicepass *Nicepass) ShowInfo(options *felica.Options) {
 			t(value.TypeName(), 10),
 			value.ProcName())
 	}
+}
+
+// *** NicepassAttr メソッド
+
+// 端末種
+func (attr *NicepassAttr) TypeName() interface{} {
+	return nicepass_disp_name("TYPE", attr.Type, 4)
+}
+
+// 処理
+func (attr *NicepassAttr) ProcName() interface{} {
+	return nicepass_disp_name("PROC", attr.Proc, 2)
+}
+
+// 乗車駅
+func (attr *NicepassAttr) InStationName() interface{} {
+	if attr.InStation == 0 {
+		return ""
+	}
+	return nicepass_disp_name("STATION", attr.InStation, 6)
+}
+
+// 降車駅
+func (attr *NicepassAttr) OutStationName() interface{} {
+	if attr.OutStation == 0 {
+		return ""
+	}
+	return nicepass_disp_name("STATION", attr.OutStation, 6)
 }
 
 // *** NicepassValue メソッド
