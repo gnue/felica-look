@@ -70,6 +70,7 @@ const (
 )
 
 // *** felica_module メソッド
+
 // 対応カードか？
 func (module *felica_module) IsCard(cardinfo felica.CardInfo) bool {
 	for syscode, currsys := range cardinfo {
@@ -90,6 +91,7 @@ func (module *felica_module) Bind(cardinfo felica.CardInfo) felica.Engine {
 }
 
 // *** Edy メソッド
+
 // カード名
 func (edy *Edy) Name() string {
 	return moduleName
@@ -231,6 +233,7 @@ func (edy *Edy) ShowInfo(options *felica.Options) {
 }
 
 // *** EdyInfo メソッド
+
 // Edy番号
 func (info *EdyInfo) EdyNoDisp() string {
 	edyno := info.EdyNo
@@ -243,6 +246,7 @@ func (value *EdyValue) TypeName() interface{} {
 }
 
 // *** 表示用関数
+
 // 金額（0円なら空文字列）
 func disp_money(money int) string {
 	if money == 0 {
@@ -253,6 +257,7 @@ func disp_money(money int) string {
 }
 
 // ***
+
 // Edyテーブル
 var edy_tables map[interface{}]interface{}
 

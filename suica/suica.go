@@ -64,6 +64,7 @@ var SystemCodes = map[uint16]string{
 }
 
 // *** felica_module メソッド
+
 // 対応カードか？
 func (module *felica_module) IsCard(cardinfo felica.CardInfo) bool {
 	syscode := find_syscode(cardinfo)
@@ -76,6 +77,7 @@ func (module *felica_module) Bind(cardinfo felica.CardInfo) felica.Engine {
 }
 
 // *** Suica メソッド
+
 // カード名
 func (suica *Suica) Name() string {
 	return SystemCodes[suica.syscode]
@@ -163,7 +165,7 @@ func (suica *Suica) ShowInfo(options *felica.Options) {
 	}
 
 	fmt.Println("\n[利用履歴]\n")
-	fmt.Printf("%s   利用年月日     支払い       残額     入場駅      出場駅   (連番） 端末種    処理\n", indent_space)
+	fmt.Printf("%s   利用年月日     支払い       残額      入場駅            出場駅        (連番）   端末種      処理\n", indent_space)
 	fmt.Printf("  %s\n", strings.Repeat("-", indent+110))
 	for _, value := range suica.Hist {
 		disp_payment := "---　"
@@ -178,19 +180,20 @@ func (suica *Suica) ShowInfo(options *felica.Options) {
 		if options.Hex {
 			fmt.Printf("   %16X   ", value.Raw)
 		}
-		fmt.Printf("   %s  %8s %8d円  %10v  %10v  (%4d)  %6v  %v\n",
+		fmt.Printf("   %s  %8s %8d円  %v  %v  (%4d)  %6v  %v\n",
 			value.Date.Format("2006-01-02"),
 			disp_payment,
 			value.Balance,
-			value.InStationName(),
-			value.OutStationName(),
+			t(value.InStationName(), 16),
+			t(value.OutStationName(), 16),
 			value.No,
-			value.TypeName(),
+			t(value.TypeName(), 10),
 			value.ProcName())
 	}
 }
 
 // *** SuicaValue メソッド
+
 // 処理
 func (value *SuicaValue) ProcName() interface{} {
 	return suica_disp_name("PROC", value.Proc, 2)
@@ -218,6 +221,7 @@ func (value *SuicaValue) TypeName() interface{} {
 }
 
 // *** 関数
+
 // システムコードを検索する
 func find_syscode(cardinfo felica.CardInfo) uint16 {
 	for syscode, _ := range cardinfo {
@@ -229,7 +233,13 @@ func find_syscode(cardinfo felica.CardInfo) uint16 {
 	return 0
 }
 
+// 表示幅を指定した文字数
+func t(value interface{}, width int) string {
+	return felica.DispString(fmt.Sprintf("%v", value), width)
+}
+
 // ***
+
 // Suicaテーブル
 var suica_tables map[interface{}]interface{}
 

@@ -98,6 +98,7 @@ const (
 )
 
 // *** felica_module メソッド
+
 // 対応カードか？
 func (module *felica_module) IsCard(cardinfo felica.CardInfo) bool {
 	for syscode, _ := range cardinfo {
@@ -115,6 +116,7 @@ func (module *felica_module) Bind(cardinfo felica.CardInfo) felica.Engine {
 }
 
 // *** RapiCa メソッド
+
 // カード名
 func (rapica *RapiCa) Name() string {
 	return moduleName
@@ -312,26 +314,26 @@ func (rapica *RapiCa) ShowInfo(options *felica.Options) {
 
 	if options.Extend || options.Hex {
 		fmt.Println("\n[利用履歴（元データ）]\n")
-		fmt.Printf("%s       日時     利用種別      残額         事業者 系統 / 停留所 (装置)\n", indent_space)
-		fmt.Printf("  %s\n", strings.Repeat("-", indent+100))
+		fmt.Printf("%s       日時     利用種別      残額             事業者                     系統              /      停留所          (装置)\n", indent_space)
+		fmt.Printf("  %s\n", strings.Repeat("-", indent+120))
 		for _, value := range rapica.Hist {
 			if options.Hex {
 				fmt.Printf("   %16X   ", value.Raw)
 			}
-			fmt.Printf("   %s    %v  %8d円    %v %v / %v (%d)\n",
+			fmt.Printf("   %s    %v  %8d円  %v %v / %v (%d)\n",
 				value.DateTime.Format("01/02 15:04"),
 				value.KindName(),
 				value.Amount,
-				value.CompanyName(),
-				value.BuslineName(),
-				value.BusstopName(),
+				t(value.CompanyName(), 24),
+				t(value.BuslineName(), 30),
+				t(value.BusstopName(), 20),
 				value.Busno)
 		}
 	}
 
 	fmt.Println("\n[利用履歴]\n")
-	fmt.Printf("%s          日時       利用種別      利用料金        残額         事業者 系統 / 停留所 (装置)\n", indent_space)
-	fmt.Printf("  %s\n", strings.Repeat("-", indent+140))
+	fmt.Printf("%s          日時       利用種別      利用料金        残額             事業者                     系統              /              停留所                (装置)\n", indent_space)
+	fmt.Printf("  %s\n", strings.Repeat("-", indent+156))
 	for _, value := range rapica.Hist {
 		disp_payment := "---　"
 		disp_busstop := value.BusstopName()
@@ -356,9 +358,15 @@ func (rapica *RapiCa) ShowInfo(options *felica.Options) {
 		if options.Hex {
 			fmt.Printf("   %16X   ", value.Raw)
 		}
-		fmt.Printf("   %s    %v %14s %9d円    %v %v / %v (%d)\n",
-			value.DateTime.Format("2006-01-02 15:04"), value.KindName(), disp_payment, value.Amount,
-			value.CompanyName(), value.BuslineName(), disp_busstop, value.Busno)
+		fmt.Printf("   %s    %v %14s %9d円  %v %v / %v (%d)\n",
+			value.DateTime.Format("2006-01-02 15:04"),
+			value.KindName(),
+			disp_payment,
+			value.Amount,
+			t(value.CompanyName(), 24),
+			t(value.BuslineName(), 30),
+			t(disp_busstop, 34),
+			value.Busno)
 	}
 
 	fmt.Println("\n[積増情報]\n")
@@ -374,12 +382,14 @@ func (rapica *RapiCa) ShowInfo(options *felica.Options) {
 }
 
 // *** RapicaInfo メソッド
+
 // 事業者名
 func (info *RapicaInfo) CompanyName() interface{} {
 	return rapica_disp_name("ATTR_COMPANY", info.Company, 4)
 }
 
 // *** RapicaAttr メソッド
+
 // 事業者名
 func (attr *RapicaAttr) CompanyName() interface{} {
 	return rapica_disp_name("ATTR_COMPANY", attr.Company, 4)
@@ -391,6 +401,7 @@ func (attr *RapicaAttr) KindName() interface{} {
 }
 
 // *** RapicaValue メソッド
+
 // 利用種別
 func (value *RapicaValue) KindName() interface{} {
 	return rapica_disp_name("HIST_KIND", value.Kind, 2)
@@ -412,15 +423,22 @@ func (value *RapicaValue) BuslineName() interface{} {
 }
 
 // *** RapicaCharge メソッド
+
 func (charge *RapicaCharge) CompanyName() interface{} {
 	return rapica_disp_name("ATTR_COMPANY", charge.Company, 4)
 }
 
 // ***
+
 // RapiCaテーブル
 var rapica_tables map[interface{}]interface{}
 
 // RapiCaテーブルを検索して表示用の文字列を返す
 func rapica_disp_name(name string, value int, base int, opt_values ...int) interface{} {
 	return felica.DispName(rapica_tables, name, value, base, opt_values...)
+}
+
+// 表示幅を指定した文字数
+func t(value interface{}, width int) string {
+	return felica.DispString(fmt.Sprintf("%v", value), width)
 }
