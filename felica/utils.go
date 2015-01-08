@@ -8,10 +8,9 @@ import (
 	"path/filepath"
 	"reflect"
 	"strings"
-	"unicode/utf8"
 	"unsafe"
 
-	"github.com/moznion/go-unicode-east-asian-width"
+	"github.com/gnue/go-disp_width"
 	"launchpad.net/goyaml"
 )
 
@@ -89,59 +88,11 @@ func DispName(tables map[interface{}]interface{}, name string, value int, base i
 
 // 指定された表示文字になるように調整する
 func DispString(str string, width int) string {
-	s, rest := StringTruncate(str, width, "…")
+	s, rest := disp_width.Truncate(str, width, "…")
 
 	if 0 < rest {
 		s = s + strings.Repeat(" ", rest)
 	}
 
 	return s
-}
-
-// 文字列の表示幅
-func StringWidth(str string) (w int) {
-	for _, r := range str {
-		if eastasianwidth.IsFullwidth(r) {
-			w += 2
-		} else {
-			w++
-		}
-	}
-
-	return
-}
-
-// 文字列の表示幅で切り詰める
-func StringTruncate(str string, width int, tail string) (s string, rest int) {
-	tailLen := StringWidth(tail)
-	tailRest := width
-	tp := 0
-	i := 0
-
-	rest = width
-	s = str
-
-	for _, r := range str {
-		n := 1
-		if eastasianwidth.IsFullwidth(r) {
-			n = 2
-		}
-
-		if tp == 0 && rest < n+tailLen {
-			// tail を追加できる位置を覚えておく
-			tp = i
-			tailRest = rest
-		}
-
-		if rest < n {
-			s = str[0:tp] + tail
-			rest = tailRest - tailLen
-			break
-		}
-
-		rest -= n
-		i += utf8.RuneLen(r)
-	}
-
-	return
 }
