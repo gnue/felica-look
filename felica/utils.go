@@ -11,7 +11,7 @@ import (
 	"unsafe"
 
 	"github.com/gnue/go-disp_width"
-	"launchpad.net/goyaml"
+	"gopkg.in/yaml.v2"
 )
 
 // C言語で使うためにデータにアクセスするポインタを取得する
@@ -55,7 +55,7 @@ func LoadYAML(fname string) (map[interface{}]interface{}, error) {
 	}
 
 	m := make(map[interface{}]interface{})
-	err = goyaml.Unmarshal(contents, &m)
+	err = yaml.Unmarshal(contents, &m)
 
 	return m, err
 }
